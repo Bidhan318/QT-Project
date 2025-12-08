@@ -13,10 +13,10 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QStatusBar>
-#include <QtWidgets/QTextEdit>
 #include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -29,9 +29,10 @@ public:
     QWidget *widget;
     QLabel *label;
     QLabel *label_2;
-    QTextEdit *textEdit;
-    QTextEdit *textEdit_2;
-    QPushButton *pushButton;
+    QPushButton *Login;
+    QPushButton *Register;
+    QLineEdit *Password;
+    QLineEdit *Username;
     QStatusBar *statusbar;
 
     void setupUi(QMainWindow *Login_Window)
@@ -62,16 +63,19 @@ public:
         label_2->setGeometry(QRect(270, 160, 221, 81));
         label_2->setFont(font);
         label_2->setAlignment(Qt::AlignmentFlag::AlignCenter);
-        textEdit = new QTextEdit(widget);
-        textEdit->setObjectName("textEdit");
-        textEdit->setGeometry(QRect(210, 290, 331, 31));
-        textEdit->viewport()->setProperty("cursor", QVariant(QCursor(Qt::CursorShape::ArrowCursor)));
-        textEdit_2 = new QTextEdit(widget);
-        textEdit_2->setObjectName("textEdit_2");
-        textEdit_2->setGeometry(QRect(210, 330, 331, 31));
-        pushButton = new QPushButton(widget);
-        pushButton->setObjectName("pushButton");
-        pushButton->setGeometry(QRect(340, 390, 90, 29));
+        Login = new QPushButton(widget);
+        Login->setObjectName("Login");
+        Login->setGeometry(QRect(340, 380, 90, 29));
+        Register = new QPushButton(widget);
+        Register->setObjectName("Register");
+        Register->setGeometry(QRect(340, 420, 90, 29));
+        Password = new QLineEdit(widget);
+        Password->setObjectName("Password");
+        Password->setGeometry(QRect(210, 330, 331, 28));
+        Password->setEchoMode(QLineEdit::EchoMode::Password);
+        Username = new QLineEdit(widget);
+        Username->setObjectName("Username");
+        Username->setGeometry(QRect(210, 290, 331, 28));
 
         gridLayout->addWidget(widget, 0, 0, 1, 1);
 
@@ -90,9 +94,10 @@ public:
         Login_Window->setWindowTitle(QCoreApplication::translate("Login_Window", "Login_Window", nullptr));
         label->setText(QCoreApplication::translate("Login_Window", "NOVACHAT", nullptr));
         label_2->setText(QCoreApplication::translate("Login_Window", "LOGIN", nullptr));
-        textEdit->setPlaceholderText(QCoreApplication::translate("Login_Window", "Username", nullptr));
-        textEdit_2->setPlaceholderText(QCoreApplication::translate("Login_Window", "Password", nullptr));
-        pushButton->setText(QCoreApplication::translate("Login_Window", "Login", nullptr));
+        Login->setText(QCoreApplication::translate("Login_Window", "Login", nullptr));
+        Register->setText(QCoreApplication::translate("Login_Window", "Register", nullptr));
+        Password->setPlaceholderText(QCoreApplication::translate("Login_Window", "Password", nullptr));
+        Username->setPlaceholderText(QCoreApplication::translate("Login_Window", "Username", nullptr));
     } // retranslateUi
 
 };

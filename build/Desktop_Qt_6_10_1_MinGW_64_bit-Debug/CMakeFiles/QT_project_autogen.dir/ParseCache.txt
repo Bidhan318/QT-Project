@@ -379,6 +379,7 @@ E:/QT projects/QT_project/login_window.h
  mdp:E:/QT projects/QT_project/login_window.h
 E:/QT projects/QT_project/mainwindow.h
  mmc:Q_OBJECT
+ mdp:D:/Qt/6.10.1/mingw_64/include/QtCore/QString
  mdp:D:/Qt/6.10.1/mingw_64/include/QtCore/q17memory.h
  mdp:D:/Qt/6.10.1/mingw_64/include/QtCore/q20functional.h
  mdp:D:/Qt/6.10.1/mingw_64/include/QtCore/q20iterator.h

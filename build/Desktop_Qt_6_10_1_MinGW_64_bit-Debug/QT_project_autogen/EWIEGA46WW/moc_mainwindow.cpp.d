@@ -1,5 +1,6 @@
 E:/QT\ projects/QT_project/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/QT_project_autogen/EWIEGA46WW/moc_mainwindow.cpp: E:/QT\ projects/QT_project/mainwindow.h \
   E:/QT\ projects/QT_project/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/QT_project_autogen/moc_predefs.h \
+  D:/Qt/6.10.1/mingw_64/include/QtCore/QString \
   D:/Qt/6.10.1/mingw_64/include/QtCore/q17memory.h \
   D:/Qt/6.10.1/mingw_64/include/QtCore/q20functional.h \
   D:/Qt/6.10.1/mingw_64/include/QtCore/q20iterator.h \
