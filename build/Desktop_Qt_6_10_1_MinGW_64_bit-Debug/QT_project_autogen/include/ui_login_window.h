@@ -11,12 +11,14 @@
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QStatusBar>
+#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -25,14 +27,28 @@ class Ui_Login_Window
 {
 public:
     QWidget *centralwidget;
-    QGridLayout *gridLayout;
-    QWidget *widget;
+    QVBoxLayout *mainVerticalLayout;
+    QSpacerItem *topSpacer;
+    QHBoxLayout *horizontalLayout;
+    QSpacerItem *leftSpacer;
+    QWidget *formContainer;
+    QVBoxLayout *formLayout;
     QLabel *label;
     QLabel *label_2;
-    QPushButton *Login;
-    QPushButton *Register;
-    QLineEdit *Password;
+    QSpacerItem *titleSpacer;
     QLineEdit *Username;
+    QLineEdit *Password;
+    QSpacerItem *buttonSpacer;
+    QHBoxLayout *loginButtonLayout;
+    QSpacerItem *loginLeftSpacer;
+    QPushButton *Login;
+    QSpacerItem *loginRightSpacer;
+    QHBoxLayout *registerButtonLayout;
+    QSpacerItem *registerLeftSpacer;
+    QPushButton *Register;
+    QSpacerItem *registerRightSpacer;
+    QSpacerItem *rightSpacer;
+    QSpacerItem *bottomSpacer;
     QStatusBar *statusbar;
 
     void setupUi(QMainWindow *Login_Window)
@@ -40,44 +56,120 @@ public:
         if (Login_Window->objectName().isEmpty())
             Login_Window->setObjectName("Login_Window");
         Login_Window->resize(800, 600);
-        Login_Window->setLayoutDirection(Qt::LayoutDirection::LeftToRight);
-        Login_Window->setAutoFillBackground(false);
         centralwidget = new QWidget(Login_Window);
         centralwidget->setObjectName("centralwidget");
-        gridLayout = new QGridLayout(centralwidget);
-        gridLayout->setObjectName("gridLayout");
-        widget = new QWidget(centralwidget);
-        widget->setObjectName("widget");
-        widget->setLayoutDirection(Qt::LayoutDirection::LeftToRight);
-        label = new QLabel(widget);
+        mainVerticalLayout = new QVBoxLayout(centralwidget);
+        mainVerticalLayout->setObjectName("mainVerticalLayout");
+        topSpacer = new QSpacerItem(20, 40, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
+
+        mainVerticalLayout->addItem(topSpacer);
+
+        horizontalLayout = new QHBoxLayout();
+        horizontalLayout->setObjectName("horizontalLayout");
+        leftSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        horizontalLayout->addItem(leftSpacer);
+
+        formContainer = new QWidget(centralwidget);
+        formContainer->setObjectName("formContainer");
+        formContainer->setMinimumSize(QSize(400, 0));
+        formContainer->setMaximumSize(QSize(400, 16777215));
+        formLayout = new QVBoxLayout(formContainer);
+        formLayout->setSpacing(15);
+        formLayout->setObjectName("formLayout");
+        formLayout->setContentsMargins(0, 0, 0, 0);
+        label = new QLabel(formContainer);
         label->setObjectName("label");
-        label->setGeometry(QRect(270, 120, 221, 81));
         QFont font;
         font.setFamilies({QString::fromUtf8("Times New Roman")});
         font.setPointSize(16);
         font.setBold(true);
         label->setFont(font);
         label->setAlignment(Qt::AlignmentFlag::AlignCenter);
-        label_2 = new QLabel(widget);
+
+        formLayout->addWidget(label);
+
+        label_2 = new QLabel(formContainer);
         label_2->setObjectName("label_2");
-        label_2->setGeometry(QRect(270, 160, 221, 81));
         label_2->setFont(font);
         label_2->setAlignment(Qt::AlignmentFlag::AlignCenter);
-        Login = new QPushButton(widget);
-        Login->setObjectName("Login");
-        Login->setGeometry(QRect(340, 380, 90, 29));
-        Register = new QPushButton(widget);
-        Register->setObjectName("Register");
-        Register->setGeometry(QRect(340, 420, 90, 29));
-        Password = new QLineEdit(widget);
-        Password->setObjectName("Password");
-        Password->setGeometry(QRect(210, 330, 331, 28));
-        Password->setEchoMode(QLineEdit::EchoMode::Password);
-        Username = new QLineEdit(widget);
-        Username->setObjectName("Username");
-        Username->setGeometry(QRect(210, 290, 331, 28));
 
-        gridLayout->addWidget(widget, 0, 0, 1, 1);
+        formLayout->addWidget(label_2);
+
+        titleSpacer = new QSpacerItem(20, 30, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Fixed);
+
+        formLayout->addItem(titleSpacer);
+
+        Username = new QLineEdit(formContainer);
+        Username->setObjectName("Username");
+        Username->setMinimumSize(QSize(0, 35));
+
+        formLayout->addWidget(Username);
+
+        Password = new QLineEdit(formContainer);
+        Password->setObjectName("Password");
+        Password->setMinimumSize(QSize(0, 35));
+        Password->setEchoMode(QLineEdit::EchoMode::Password);
+
+        formLayout->addWidget(Password);
+
+        buttonSpacer = new QSpacerItem(20, 20, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Fixed);
+
+        formLayout->addItem(buttonSpacer);
+
+        loginButtonLayout = new QHBoxLayout();
+        loginButtonLayout->setObjectName("loginButtonLayout");
+        loginLeftSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        loginButtonLayout->addItem(loginLeftSpacer);
+
+        Login = new QPushButton(formContainer);
+        Login->setObjectName("Login");
+        Login->setMinimumSize(QSize(100, 35));
+        Login->setMaximumSize(QSize(100, 16777215));
+
+        loginButtonLayout->addWidget(Login);
+
+        loginRightSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        loginButtonLayout->addItem(loginRightSpacer);
+
+
+        formLayout->addLayout(loginButtonLayout);
+
+        registerButtonLayout = new QHBoxLayout();
+        registerButtonLayout->setObjectName("registerButtonLayout");
+        registerLeftSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        registerButtonLayout->addItem(registerLeftSpacer);
+
+        Register = new QPushButton(formContainer);
+        Register->setObjectName("Register");
+        Register->setMinimumSize(QSize(100, 35));
+        Register->setMaximumSize(QSize(100, 16777215));
+
+        registerButtonLayout->addWidget(Register);
+
+        registerRightSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        registerButtonLayout->addItem(registerRightSpacer);
+
+
+        formLayout->addLayout(registerButtonLayout);
+
+
+        horizontalLayout->addWidget(formContainer);
+
+        rightSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        horizontalLayout->addItem(rightSpacer);
+
+
+        mainVerticalLayout->addLayout(horizontalLayout);
+
+        bottomSpacer = new QSpacerItem(20, 40, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
+
+        mainVerticalLayout->addItem(bottomSpacer);
 
         Login_Window->setCentralWidget(centralwidget);
         statusbar = new QStatusBar(Login_Window);
@@ -94,10 +186,10 @@ public:
         Login_Window->setWindowTitle(QCoreApplication::translate("Login_Window", "Login_Window", nullptr));
         label->setText(QCoreApplication::translate("Login_Window", "NOVACHAT", nullptr));
         label_2->setText(QCoreApplication::translate("Login_Window", "LOGIN", nullptr));
+        Username->setPlaceholderText(QCoreApplication::translate("Login_Window", "Username", nullptr));
+        Password->setPlaceholderText(QCoreApplication::translate("Login_Window", "Password", nullptr));
         Login->setText(QCoreApplication::translate("Login_Window", "Login", nullptr));
         Register->setText(QCoreApplication::translate("Login_Window", "Register", nullptr));
-        Password->setPlaceholderText(QCoreApplication::translate("Login_Window", "Password", nullptr));
-        Username->setPlaceholderText(QCoreApplication::translate("Login_Window", "Username", nullptr));
     } // retranslateUi
 
 };

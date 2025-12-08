@@ -150,3 +150,39 @@ void Login_Window::on_Register_clicked()
 }
 
 
+void Login_Window::on_Login_pressed()
+{
+    ui->Login->setStyleSheet(
+        "QPushButton { "
+        "   background-color: #4a90e2; "   // bluish color
+        "   color: white; "
+        "   border-radius: 5px; "
+        "}"
+        );
+}
+
+void Login_Window::on_Login_released()
+{
+    ui->Login->setStyleSheet("");  // ← CLEAR stylesheet
+}
+
+
+
+
+void Login_Window::on_Register_pressed()
+{
+    ui->Register->setStyleSheet(
+        "QPushButton { "
+        "   background-color: #4a90e2; "   // bluish color
+        "   color: white; "
+        "   border-radius: 5px; "
+        "}"
+        );
+}
+
+
+void Login_Window::on_Register_released()
+{
+    ui->Register->setStyleSheet("");  // ← CLEAR stylesheet
+}
+

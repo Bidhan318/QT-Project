@@ -24,6 +24,14 @@ private slots:
 
     void on_Register_clicked();
 
+    void on_Login_pressed();
+
+    void on_Login_released();
+
+    void on_Register_pressed();
+
+    void on_Register_released();
+
 private:
     Ui::Login_Window *ui;
     MainWindow* mainwindow;
