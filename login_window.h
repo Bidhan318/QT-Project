@@ -4,6 +4,7 @@
 #include <QMainWindow>
 
 class MainWindow;
+class ServerWindow;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -35,5 +36,6 @@ private slots:
 private:
     Ui::Login_Window *ui;
     MainWindow* mainwindow;
+    ServerWindow* serverwindow;
 };
 #endif // LOGIN_WINDOW_H

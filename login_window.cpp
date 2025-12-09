@@ -1,5 +1,6 @@
 #include "login_window.h"
 #include "mainwindow.h"
+#include "serverwindow.h"
 #include "./ui_login_window.h"
 #include <QString>
 #include <QMessageBox>
@@ -28,7 +29,7 @@ Login_Window::~Login_Window()
 
 QString hashpass(const QString& password)
 {
-    QByteArray hash = QCryptographicHash::hash(password.toUtf8(),
+    QByteArray hash = QCryptographicHash::hash(password.toUtf8(),   //utf8 is charcter encoding system for char to byte
                                                QCryptographicHash::Sha256);
     return hash.toHex();
 }
@@ -83,8 +84,16 @@ void Login_Window::on_Login_clicked()
 
     if(loginSuccess)
     {
-        mainwindow = new MainWindow(username);
-        mainwindow->show();
+
+        if(username == "admin")
+        {
+            serverwindow = new ServerWindow(username);
+            serverwindow->show();
+        }
+        else{
+            mainwindow = new MainWindow(username);
+            mainwindow->show();
+        }
         this->close();
     }
     else
