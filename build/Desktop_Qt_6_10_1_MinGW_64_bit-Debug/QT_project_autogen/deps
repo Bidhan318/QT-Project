@@ -564,6 +564,7 @@ QT_project_autogen/timestamp: \
 	E:/QT\ projects/QT_project/main.cpp \
 	E:/QT\ projects/QT_project/mainwindow.cpp \
 	E:/QT\ projects/QT_project/mainwindow.h \
+	E:/QT\ projects/QT_project/resources.qrc \
 	E:/QT\ projects/QT_project/login_window.ui \
 	E:/QT\ projects/QT_project/mainwindow.ui \
 	D:/Qt/Tools/CMake_64/bin/cmake.exe

@@ -7,18 +7,21 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>600</height>
+    <height>601</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Login_Window</string>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="styleSheet">
+    <string notr="true">background-color: #D3D3D3;</string>
+   </property>
    <layout class="QVBoxLayout" name="mainVerticalLayout">
     <item>
      <spacer name="topSpacer">
       <property name="orientation">
-       <enum>Qt::Vertical</enum>
+       <enum>Qt::Orientation::Vertical</enum>
       </property>
       <property name="sizeHint" stdset="0">
        <size>
@@ -33,7 +36,7 @@
       <item>
        <spacer name="leftSpacer">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -74,21 +77,27 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QLabel" name="label">
-           <property name="font">
-            <font>
-             <family>Times New Roman</family>
-             <pointsize>16</pointsize>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>NOVACHAT</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignmentFlag::AlignCenter</set>
-           </property>
-          </widget>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <widget class="QLabel" name="label_3">
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>150</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="pixmap">
+              <pixmap resource="resources.qrc">:/images/novachat.png</pixmap>
+             </property>
+             <property name="scaledContents">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item>
           <widget class="QLabel" name="label_2">
@@ -110,10 +119,10 @@
          <item>
           <spacer name="titleSpacer">
            <property name="orientation">
-            <enum>Qt::Vertical</enum>
+            <enum>Qt::Orientation::Vertical</enum>
            </property>
            <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
+            <enum>QSizePolicy::Policy::Fixed</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -131,6 +140,9 @@
              <height>35</height>
             </size>
            </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: #C6FCFF;</string>
+           </property>
            <property name="placeholderText">
             <string>Username</string>
            </property>
@@ -144,6 +156,9 @@
              <height>35</height>
             </size>
            </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: #C6FCFF;</string>
+           </property>
            <property name="echoMode">
             <enum>QLineEdit::EchoMode::Password</enum>
            </property>
@@ -155,10 +170,10 @@
          <item>
           <spacer name="buttonSpacer">
            <property name="orientation">
-            <enum>Qt::Vertical</enum>
+            <enum>Qt::Orientation::Vertical</enum>
            </property>
            <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
+            <enum>QSizePolicy::Policy::Fixed</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -173,7 +188,7 @@
            <item>
             <spacer name="loginLeftSpacer">
              <property name="orientation">
-              <enum>Qt::Horizontal</enum>
+              <enum>Qt::Orientation::Horizontal</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -197,6 +212,9 @@
                <height>16777215</height>
               </size>
              </property>
+             <property name="styleSheet">
+              <string notr="true">background-color: #C6FCFF;</string>
+             </property>
              <property name="text">
               <string>Login</string>
              </property>
@@ -205,7 +223,7 @@
            <item>
             <spacer name="loginRightSpacer">
              <property name="orientation">
-              <enum>Qt::Horizontal</enum>
+              <enum>Qt::Orientation::Horizontal</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -222,7 +240,7 @@
            <item>
             <spacer name="registerLeftSpacer">
              <property name="orientation">
-              <enum>Qt::Horizontal</enum>
+              <enum>Qt::Orientation::Horizontal</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -246,6 +264,9 @@
                <height>16777215</height>
               </size>
              </property>
+             <property name="styleSheet">
+              <string notr="true">background-color: #C6FCFF;</string>
+             </property>
              <property name="text">
               <string>Register</string>
              </property>
@@ -254,7 +275,7 @@
            <item>
             <spacer name="registerRightSpacer">
              <property name="orientation">
-              <enum>Qt::Horizontal</enum>
+              <enum>Qt::Orientation::Horizontal</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -272,7 +293,7 @@
       <item>
        <spacer name="rightSpacer">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -287,7 +308,7 @@
     <item>
      <spacer name="bottomSpacer">
       <property name="orientation">
-       <enum>Qt::Vertical</enum>
+       <enum>Qt::Orientation::Vertical</enum>
       </property>
       <property name="sizeHint" stdset="0">
        <size>
@@ -301,6 +322,8 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

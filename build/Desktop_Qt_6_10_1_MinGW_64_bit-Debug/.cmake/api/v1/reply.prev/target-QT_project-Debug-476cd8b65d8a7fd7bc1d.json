@@ -75,13 +75,13 @@
 			{
 				"command" : 4,
 				"file" : 1,
-				"line" : 63,
+				"line" : 64,
 				"parent" : 0
 			},
 			{
 				"command" : 5,
 				"file" : 1,
-				"line" : 46,
+				"line" : 47,
 				"parent" : 0
 			},
 			{
@@ -379,18 +379,19 @@
 				0,
 				1,
 				2,
-				6
+				6,
+				12
 			]
 		}
 	],
 	"dependencies" : 
 	[
 		{
-			"id" : "QT_project_autogen_timestamp_deps::@6890427a1f51a3e7e1df"
-		},
-		{
 			"backtrace" : 0,
 			"id" : "QT_project_autogen::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "QT_project_autogen_timestamp_deps::@6890427a1f51a3e7e1df"
 		}
 	],
 	"id" : "QT_project::@6890427a1f51a3e7e1df",
@@ -503,7 +504,8 @@
 				0,
 				1,
 				2,
-				6
+				6,
+				12
 			]
 		},
 		{
@@ -512,8 +514,8 @@
 			[
 				3,
 				5,
-				8,
-				9
+				9,
+				10
 			]
 		},
 		{
@@ -525,17 +527,25 @@
 			]
 		},
 		{
+			"name" : "Resources",
+			"sourceIndexes" : 
+			[
+				8
+			]
+		},
+		{
 			"name" : "",
 			"sourceIndexes" : 
 			[
-				10
+				11
 			]
 		},
 		{
 			"name" : "CMake Rules",
 			"sourceIndexes" : 
 			[
-				11
+				13,
+				14
 			]
 		}
 	],
@@ -587,6 +597,11 @@
 			"sourceGroupIndex" : 2
 		},
 		{
+			"backtrace" : 4,
+			"path" : "resources.qrc",
+			"sourceGroupIndex" : 3
+		},
+		{
 			"backtrace" : 0,
 			"isGenerated" : true,
 			"path" : "build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/QT_project_autogen/include/ui_login_window.h",
@@ -602,13 +617,26 @@
 			"backtrace" : 0,
 			"isGenerated" : true,
 			"path" : "build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/QT_project_autogen/timestamp",
-			"sourceGroupIndex" : 3
+			"sourceGroupIndex" : 4
+		},
+		{
+			"backtrace" : 0,
+			"compileGroupIndex" : 0,
+			"isGenerated" : true,
+			"path" : "build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/QT_project_autogen/EWIEGA46WW/qrc_resources.cpp",
+			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 0,
 			"isGenerated" : true,
 			"path" : "build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/QT_project_autogen/timestamp.rule",
-			"sourceGroupIndex" : 4
+			"sourceGroupIndex" : 5
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/QT_project_autogen/EWIEGA46WW/qrc_resources.cpp.rule",
+			"sourceGroupIndex" : 5
 		}
 	],
 	"type" : "EXECUTABLE"

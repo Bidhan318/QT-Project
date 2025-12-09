@@ -307,7 +307,8 @@
 		"D:/Qt/6.10.1/mingw_64/lib/cmake/Qt6/QtPublicWindowsHelpers.cmake",
 		"D:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeFindDependencyMacro.cmake",
 		"D:/Qt/6.10.1/mingw_64/lib/cmake/Qt6/Qt6Dependencies.cmake",
-		"D:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/GNUInstallDirs.cmake"
+		"D:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/GNUInstallDirs.cmake",
+		"E:/QT projects/QT_project/resources.qrc"
 	],
 	"CMAKE_SOURCE_DIR" : "E:/QT projects/QT_project",
 	"CROSS_CONFIG" : false,

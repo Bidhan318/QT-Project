@@ -163,7 +163,7 @@ void Login_Window::on_Login_pressed()
 
 void Login_Window::on_Login_released()
 {
-    ui->Login->setStyleSheet("");  // ← CLEAR stylesheet
+    ui->Login->setStyleSheet("background-color: #C6FCFF;");  // ← CLEAR stylesheet
 }
 
 
@@ -183,6 +183,6 @@ void Login_Window::on_Register_pressed()
 
 void Login_Window::on_Register_released()
 {
-    ui->Register->setStyleSheet("");  // ← CLEAR stylesheet
+    ui->Register->setStyleSheet("background-color: #C6FCFF;");  // ← CLEAR stylesheet
 }
 
