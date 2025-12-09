@@ -1,20 +1,12 @@
 {
     "users": [
         {
-            "password": "pass",
+            "password": "d74ff0ee8da3b9806b18c877dbf29bbde50b5bd8e4dad7a3a725000feb82e8f1",
             "username": "user"
         },
         {
-            "password": "pass1",
+            "password": "e6c3da5b206634d7f3f3586d747ffdb36b5c675757b380c6a5fe5c570c714349",
             "username": "user1"
-        },
-        {
-            "password": "pass2",
-            "username": "user2"
-        },
-        {
-            "password": "pass3",
-            "username": "user3"
         }
     ]
 }

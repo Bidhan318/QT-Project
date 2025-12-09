@@ -9,6 +9,8 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
+#include<QCryptographicHash>
+
 Login_Window::Login_Window(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::Login_Window)
@@ -21,6 +23,15 @@ Login_Window::~Login_Window()
     delete ui;
 }
 
+
+//func for crypotography of password
+
+QString hashpass(const QString& password)
+{
+    QByteArray hash = QCryptographicHash::hash(password.toUtf8(),
+                                               QCryptographicHash::Sha256);
+    return hash.toHex();
+}
 
 
 void Login_Window::on_Login_clicked()
@@ -61,7 +72,7 @@ void Login_Window::on_Login_clicked()
         QString u = userObj["username"].toString();
         QString p = userObj["password"].toString();
 
-        if(username == u && password == p)
+        if(username == u && hashpass(password) == p)
         {
             loginSuccess = true;
             break;
@@ -129,7 +140,7 @@ void Login_Window::on_Register_clicked()
     // Add new user
     QJsonObject newUser;
     newUser["username"] = username;
-    newUser["password"] = password; // Plain text for now
+    newUser["password"] = hashpass(password); // Plain text for now
     usersArray.append(newUser);
 
     // Update JSON object
