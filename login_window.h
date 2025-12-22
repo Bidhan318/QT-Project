@@ -9,15 +9,28 @@ class Login_Window;
 }
 QT_END_NAMESPACE
 
+class MainWindow;
+class ServerWindow;
+
 class Login_Window : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    Login_Window(QWidget *parent = nullptr);
+    explicit Login_Window(QWidget *parent = nullptr);
     ~Login_Window();
+
+private slots:
+    void on_Login_clicked();
+    void on_Register_clicked();
 
 private:
     Ui::Login_Window *ui;
+    MainWindow *mainwindow;
+    ServerWindow *serverwindow;
+
+    // Hashing function (SHA-256)
+    QString hashPassword(const QString &password);
 };
+
 #endif // LOGIN_WINDOW_H
