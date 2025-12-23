@@ -36,7 +36,7 @@ MainWindow::MainWindow(QString username, QWidget *parent)
 
     // System tray icon (required for notifications)
     trayicon = new QSystemTrayIcon(this);
-    trayicon->setIcon(QIcon(":/images/novachat.png"));
+    trayicon->setIcon(QIcon(":/images/novachat.png")); //work in progress
     trayicon->setToolTip("NovaChat");
     trayicon->show();
 
@@ -168,7 +168,7 @@ void MainWindow::sendMessage()
         //send private messages
         if(activeClients.contains(destination))
         {
-            QString privatemsg = LoggedUser + " (to " + destination + " only): " + msg;
+            QString privatemsg = LoggedUser + " (to " + destination + " only): " + msg;  //eg in form of Sulav (to rasik only): hi rasik
             QHostAddress targetIP = activeClients.value(destination);
 
             // Get my own IP for comparison
@@ -312,7 +312,7 @@ void MainWindow::receiveMessage()
             QString message = msg.mid(sep+1).trimmed();
 
             //
-            bool isPrivate = sender.contains(" (to " + LoggedUser + " only)");
+            bool isPrivate = sender.contains(" (to " + LoggedUser + " only)");  //sender = sulav (to Rasik only)
 
             if(sender.contains(" (to ") && sender.contains(" only)") && !isPrivate)
             {
@@ -413,7 +413,7 @@ void MainWindow::removeChatTab(const QString &username)
     {
         ui->chatTabs->removeTab(index);
     }
-    chatTabs.remove(username);
+    chatTabs.remove(username);  //remove from qmap
     delete view;
 }
 

@@ -17,8 +17,11 @@ Login_Window::Login_Window(QWidget *parent)
 {
     ui->setupUi(this);
 
-    connect(ui->Password, &QLineEdit::returnPressed,
+    connect(ui->Password, &QLineEdit::returnPressed,  //if enter pressed in password field it signals login funcs
             this, &Login_Window::on_Login_clicked);
+    connect(ui->Username, &QLineEdit::returnPressed,
+            ui->Password, QOverload<>::of(&QWidget::setFocus));
+
 }
 
 Login_Window::~Login_Window()
@@ -26,7 +29,6 @@ Login_Window::~Login_Window()
     delete ui;
 }
 
-/* ================= PASSWORD HASHING ================= */
 /* Converts plain text password into SHA-256 hash */
 QString Login_Window::hashPassword(const QString &password)
 {
