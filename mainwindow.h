@@ -15,6 +15,7 @@ class MainWindow;
 QT_END_NAMESPACE
 
 class QSystemTrayIcon;
+class Login_Window;
 
 class MainWindow : public QMainWindow
 {
@@ -32,10 +33,14 @@ private slots:
     void onConnectedToServer();
     void onDisconnectedFromServer();
     void onTcpError(QAbstractSocket::SocketError error);
+    void onTabChanged(int index);
+    void onActivelistChanged(const QString& username);
+
+    void on_logout_clicked();
 
 private:
     Ui::MainWindow *ui;
-
+    Login_Window *loginwindow;
     // Username of logged in user
     QString LoggedUser;
 

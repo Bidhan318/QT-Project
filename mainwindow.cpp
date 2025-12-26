@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "login_window.h"
 #include <QHostAddress>
 #include "port.h"
 #include <QSystemTrayIcon>
@@ -36,7 +37,7 @@ MainWindow::MainWindow(QString username, QWidget *parent)
 
     // System tray icon (required for notifications)
     trayicon = new QSystemTrayIcon(this);
-    trayicon->setIcon(QIcon(":/images/novachat.png")); //work in progress
+    trayicon->setIcon(QIcon(":/images/novachat.png")); //TODO work in progress
     trayicon->setToolTip("NovaChat");
     trayicon->show();
 
@@ -69,6 +70,15 @@ MainWindow::MainWindow(QString username, QWidget *parent)
             this, &MainWindow::onDisconnectedFromServer);
     connect(tcpSocket, &QTcpSocket::errorOccurred,
             this, &MainWindow::onTcpError);
+
+    // When user clicks a tab → update active list
+    connect(ui->chatTabs, &QTabWidget::currentChanged,
+            this, &MainWindow::onTabChanged);
+
+    // When user selects from active list → change tab
+    connect(ui->activelist, &QComboBox::currentTextChanged,
+            this, &MainWindow::onActivelistChanged);
+
 
     // Connect to server
     connectToServer();
@@ -429,3 +439,41 @@ void MainWindow::announcePresence()
     QString announce = "CLIENT_ANNOUNCE:"+LoggedUser;
     udpSocket->writeDatagram(announce.toUtf8(),QHostAddress::Broadcast,PORT);
 }
+
+
+//refine ui funcs
+
+void MainWindow::onTabChanged(int index)
+{
+    if(index< 0) return;
+    QString tabname = ui->chatTabs->tabText(index);
+
+    if(ui->activelist->currentText() != tabname)
+    {
+        int comboindex = ui->activelist->findText(tabname);
+        if (comboindex != -1)
+        {
+            ui->activelist->setCurrentIndex(comboindex);
+        }
+    }
+}
+
+
+void MainWindow::onActivelistChanged(const QString& username)
+{
+    if(!chatTabs.contains(username)) return;
+    QTextEdit *view = chatTabs.value(username);
+    int tabindex = ui->chatTabs->indexOf(view);
+    if(tabindex != -1 && ui->chatTabs->currentIndex() != tabindex)
+    {
+        ui->chatTabs->setCurrentIndex(tabindex);
+    }
+}
+
+void MainWindow::on_logout_clicked()
+{
+    loginwindow = new Login_Window();
+    loginwindow->show();
+    close();
+}
+

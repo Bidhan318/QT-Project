@@ -14,6 +14,7 @@ class ServerWindow;
 }
 QT_END_NAMESPACE
 
+class Login_Window;
 class QTimer;
 
 class ServerWindow : public QMainWindow
@@ -34,9 +35,11 @@ private slots:
     void broadcastServerPresence();
     void onTabscloseRequested(int index);
 
+    void on_logout_clicked();
+
 private:
     Ui::ServerWindow *ui;
-
+    Login_Window *loginwindow;
     // Server username
     QString Loggeduser;
 

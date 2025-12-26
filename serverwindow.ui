@@ -11,126 +11,178 @@
    </rect>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="mainLayout" stretch="4,2">
-    <property name="spacing">
-     <number>6</number>
-    </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QFrame" name="chatFrame">
-      <property name="styleSheet">
-       <string>
-        QFrame#chatFrame {
-          background-color: #f0f0f0;
-          border: 1px solid #c8c8c8;
-          border-radius: 4px;
-        }
-       </string>
+     <layout class="QHBoxLayout" name="topLayout">
+      <item>
+       <widget class="QLabel" name="label_2">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="resources.qrc">:/images/novachat.png</pixmap>
+        </property>
+        <property name="scaledContents">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="logout">
+        <property name="styleSheet">
+         <string notr="true">background-color: #EF5350;</string>
+        </property>
+        <property name="text">
+         <string>Logout</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="mainLayout" stretch="4,2">
+      <property name="spacing">
+       <number>6</number>
       </property>
-      <property name="frameShape">
-       <enum>QFrame::Shape::StyledPanel</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Shadow::Plain</enum>
-      </property>
-      <layout class="QVBoxLayout" name="chatLayout">
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="font">
-          <font>
-           <family>Times New Roman</family>
-           <pointsize>26</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>Chats</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QTabWidget" name="client_tab"/>
-       </item>
-       <item>
-        <layout class="QHBoxLayout">
+      <item>
+       <widget class="QFrame" name="chatFrame">
+        <property name="styleSheet">
+         <string>
+          QFrame#chatFrame {
+            background-color: #f0f0f0;
+            border: 1px solid #c8c8c8;
+            border-radius: 4px;
+          }
+         </string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::Shape::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Shadow::Plain</enum>
+        </property>
+        <layout class="QVBoxLayout" name="chatLayout">
          <item>
-          <widget class="QLabel" name="msg_lbl">
+          <widget class="QLabel" name="label">
+           <property name="font">
+            <font>
+             <family>Times New Roman</family>
+             <pointsize>26</pointsize>
+            </font>
+           </property>
            <property name="text">
-            <string>Message:</string>
+            <string>Chats</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="msg_in">
-           <property name="autoFillBackground">
-            <bool>false</bool>
+          <widget class="QTabWidget" name="client_tab"/>
+         </item>
+         <item>
+          <layout class="QHBoxLayout">
+           <item>
+            <widget class="QLabel" name="msg_lbl">
+             <property name="text">
+              <string>Message:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="msg_in">
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="send_btn">
+             <property name="text">
+              <string>Send</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QFrame" name="clientsFrame">
+        <property name="styleSheet">
+         <string>
+          QFrame#clientsFrame {
+            background-color: #f5f5f5;
+            border: 1px solid #c8c8c8;
+            border-radius: 4px;
+          }
+         </string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::Shape::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Shadow::Plain</enum>
+        </property>
+        <layout class="QVBoxLayout" name="clientLayout">
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="font">
+            <font>
+             <family>Times New Roman</family>
+             <pointsize>26</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Clients</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="send_btn">
+          <widget class="QTextEdit" name="client_name">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+           <property name="placeholderText">
+            <string>Client list here...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="disconnect_btn">
            <property name="text">
-            <string>Send</string>
+            <string>Disconnect all</string>
            </property>
           </widget>
          </item>
         </layout>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <widget class="QFrame" name="clientsFrame">
-      <property name="styleSheet">
-       <string>
-        QFrame#clientsFrame {
-          background-color: #f5f5f5;
-          border: 1px solid #c8c8c8;
-          border-radius: 4px;
-        }
-       </string>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::Shape::StyledPanel</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Shadow::Plain</enum>
-      </property>
-      <layout class="QVBoxLayout" name="clientLayout">
-       <item>
-        <widget class="QLabel" name="label_3">
-         <property name="font">
-          <font>
-           <family>Times New Roman</family>
-           <pointsize>26</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>Clients</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QTextEdit" name="client_name">
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-         <property name="placeholderText">
-          <string>Client list here...</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="disconnect_btn">
-         <property name="text">
-          <string>Disconnect all</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

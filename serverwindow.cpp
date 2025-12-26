@@ -1,5 +1,6 @@
 #include "serverwindow.h"
 #include "ui_serverwindow.h"
+#include "login_window.h"
 #include "port.h"
 #include <QHostAddress>   //for working with localhost,broadcast
 #include <QTimer>
@@ -349,3 +350,11 @@ void ServerWindow::onTabscloseRequested(int index)
         }
     }
 }
+
+void ServerWindow::on_logout_clicked()
+{
+    loginwindow = new Login_Window();
+    loginwindow->show();
+    close();
+}
+

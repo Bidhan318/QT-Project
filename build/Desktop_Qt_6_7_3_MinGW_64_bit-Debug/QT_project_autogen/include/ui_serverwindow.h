@@ -17,6 +17,7 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QTextEdit>
 #include <QtWidgets/QVBoxLayout>
@@ -28,6 +29,11 @@ class Ui_ServerWindow
 {
 public:
     QWidget *centralwidget;
+    QVBoxLayout *verticalLayout;
+    QHBoxLayout *topLayout;
+    QLabel *label_2;
+    QSpacerItem *horizontalSpacer;
+    QPushButton *logout;
     QHBoxLayout *mainLayout;
     QFrame *chatFrame;
     QVBoxLayout *chatLayout;
@@ -50,7 +56,32 @@ public:
         ServerWindow->resize(900, 600);
         centralwidget = new QWidget(ServerWindow);
         centralwidget->setObjectName("centralwidget");
-        mainLayout = new QHBoxLayout(centralwidget);
+        verticalLayout = new QVBoxLayout(centralwidget);
+        verticalLayout->setObjectName("verticalLayout");
+        topLayout = new QHBoxLayout();
+        topLayout->setObjectName("topLayout");
+        label_2 = new QLabel(centralwidget);
+        label_2->setObjectName("label_2");
+        label_2->setMaximumSize(QSize(50, 50));
+        label_2->setPixmap(QPixmap(QString::fromUtf8(":/images/novachat.png")));
+        label_2->setScaledContents(true);
+
+        topLayout->addWidget(label_2);
+
+        horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        topLayout->addItem(horizontalSpacer);
+
+        logout = new QPushButton(centralwidget);
+        logout->setObjectName("logout");
+        logout->setStyleSheet(QString::fromUtf8("background-color: #EF5350;"));
+
+        topLayout->addWidget(logout);
+
+
+        verticalLayout->addLayout(topLayout);
+
+        mainLayout = new QHBoxLayout();
         mainLayout->setSpacing(6);
         mainLayout->setObjectName("mainLayout");
         chatFrame = new QFrame(centralwidget);
@@ -125,6 +156,9 @@ public:
 
         mainLayout->setStretch(0, 4);
         mainLayout->setStretch(1, 2);
+
+        verticalLayout->addLayout(mainLayout);
+
         ServerWindow->setCentralWidget(centralwidget);
 
         retranslateUi(ServerWindow);
@@ -134,23 +168,25 @@ public:
 
     void retranslateUi(QMainWindow *ServerWindow)
     {
+        label_2->setText(QString());
+        logout->setText(QCoreApplication::translate("ServerWindow", "Logout", nullptr));
         chatFrame->setStyleSheet(QCoreApplication::translate("ServerWindow", "\n"
-"        QFrame#chatFrame {\n"
-"          background-color: #f0f0f0;\n"
-"          border: 1px solid #c8c8c8;\n"
-"          border-radius: 4px;\n"
-"        }\n"
-"       ", nullptr));
+"          QFrame#chatFrame {\n"
+"            background-color: #f0f0f0;\n"
+"            border: 1px solid #c8c8c8;\n"
+"            border-radius: 4px;\n"
+"          }\n"
+"         ", nullptr));
         label->setText(QCoreApplication::translate("ServerWindow", "Chats", nullptr));
         msg_lbl->setText(QCoreApplication::translate("ServerWindow", "Message:", nullptr));
         send_btn->setText(QCoreApplication::translate("ServerWindow", "Send", nullptr));
         clientsFrame->setStyleSheet(QCoreApplication::translate("ServerWindow", "\n"
-"        QFrame#clientsFrame {\n"
-"          background-color: #f5f5f5;\n"
-"          border: 1px solid #c8c8c8;\n"
-"          border-radius: 4px;\n"
-"        }\n"
-"       ", nullptr));
+"          QFrame#clientsFrame {\n"
+"            background-color: #f5f5f5;\n"
+"            border: 1px solid #c8c8c8;\n"
+"            border-radius: 4px;\n"
+"          }\n"
+"         ", nullptr));
         label_3->setText(QCoreApplication::translate("ServerWindow", "Clients", nullptr));
         client_name->setPlaceholderText(QCoreApplication::translate("ServerWindow", "Client list here...", nullptr));
         disconnect_btn->setText(QCoreApplication::translate("ServerWindow", "Disconnect all", nullptr));
