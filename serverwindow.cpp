@@ -132,6 +132,11 @@ void ServerWindow::onClientDataReceived() //this routes the msg from one client 
             QString username = message.mid(7).trimmed();
             if(username.isEmpty()) continue;
 
+            if(ui->client_name)
+            {
+                ui->client_name->append(username + " has left the chat");
+            }
+
             removeClientTab(username);
             clientSockets.remove(clientSocket);
 

@@ -238,9 +238,6 @@ void MainWindow::receiveMessage()
                 announcementTimer->stop();
             }
 
-            // Announce departure
-            announceDeparture();
-
             // Close UDP socket to stop receiving discovery messages
             if(udpSocket)
             {
@@ -270,7 +267,7 @@ void MainWindow::receiveMessage()
             loginwindow = new Login_Window();
             loginwindow->show();
             deleteLater();  // Completely destroy MainWindow
-            continue;
+            return;
         }
 
 
@@ -547,7 +544,6 @@ void MainWindow::on_logout_clicked()
     {
         announcementTimer->stop();
     }
-    announceDeparture();
 
     if (tcpSocket->state() == QAbstractSocket::ConnectedState) //on logout notify via tcp
     {
