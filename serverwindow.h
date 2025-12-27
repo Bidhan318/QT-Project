@@ -26,7 +26,6 @@ public:
     ~ServerWindow();
 
 private slots:
-    void receiveMessage();
     void on_send_btn_clicked();
     void on_disconnect_btn_clicked();
     void onNewConnection();

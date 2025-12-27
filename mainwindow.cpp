@@ -17,14 +17,14 @@ MainWindow::MainWindow(QString username, QWidget *parent)
 {
     ui->setupUi(this);
 
-    //----TCP for online detection and UDP for msg passing----------------
+    //----UDP for presence detction and TCP for msg passing----------------
 
-    // UDP socket setup for messaging
+    // UDP socket setup for presence detection
     udpSocket = new QUdpSocket(this);  //using this makes mainwindow parent so socket closes when the window is closed
     udpSocket->bind(QHostAddress::AnyIPv4, PORT,
                     QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
 
-    // TCP socket setup for presence detection
+    // TCP socket setup for msgs
     tcpSocket = new QTcpSocket(this);
 
     // Set up periodic presence announcement (every 3 seconds)
@@ -61,7 +61,7 @@ MainWindow::MainWindow(QString username, QWidget *parent)
     connect(ui->messageEdit, &QLineEdit::returnPressed,
             this, &MainWindow::sendMessage);      //for working when pressed enter
     connect(udpSocket, &QUdpSocket::readyRead,
-            this, &MainWindow::receiveMessage);  //signal when udp packet arrives
+            this, &MainWindow::receivePresenceAnnouncement);  //signal when udp packet arrives
 
     // TCP connections
     connect(tcpSocket, &QTcpSocket::connected,  //signal when tcp connection establishes
@@ -70,6 +70,8 @@ MainWindow::MainWindow(QString username, QWidget *parent)
             this, &MainWindow::onDisconnectedFromServer);
     connect(tcpSocket, &QTcpSocket::errorOccurred,
             this, &MainWindow::onTcpError);
+    connect(tcpSocket,&QTcpSocket::readyRead,
+            this, &MainWindow::receiveMessage);
 
     // When user clicks a tab → update active list
     connect(ui->chatTabs, &QTabWidget::currentChanged,
@@ -113,36 +115,21 @@ void MainWindow::connectToServer()
 void MainWindow::onConnectedToServer()  //auto called when tcp connection succeeds checked in serverwindow::onClientDataReceived
 {
     // Send username to server for registration
-    QString loginMsg = "LOGIN:" + LoggedUser;
+    QString loginMsg = "LOGIN:" + LoggedUser + "\n";
     tcpSocket->write(loginMsg.toUtf8());  //converts qstring to byte array for sending
     tcpSocket->flush();  //force immediate sending of data
 }
 
 void MainWindow::onDisconnectedFromServer() //for when cross pressed by server in tab list
 {
-    QByteArray data = tcpSocket->readAll(); //receives from serverwindow::addClientTab where if the cross is pressed sends "kicked" msg
-    QString msg = QString::fromUtf8(data);
-
-    if (msg == "kicked") {
-        if (chatTabs.contains("All")) {
-            chatTabs["All"]->append("--- You have been disconnected by the server ---");
-        }
-
-        ui->messageEdit->setEnabled(false);
-        ui->sendBtn->setEnabled(false);
-
-        if (ui->activelist) {
-            ui->activelist->setEnabled(false);
-        }
-
-        if (udpSocket->state() == QAbstractSocket::BoundState) {
-            udpSocket->close();
-        }
-
-        return;
-    }
     if (chatTabs.contains("All")) {
         chatTabs["All"]->append("--- Disconnected from server ---");
+    }
+    ui->messageEdit->setEnabled(false);
+    ui->sendBtn->setEnabled(false);
+    if(ui->activelist)
+    {
+        ui->activelist->setEnabled(false);
     }
 }
 
@@ -157,17 +144,25 @@ void MainWindow::sendMessage()
     QString msg = ui->messageEdit->text();
     if (msg.isEmpty()) return;
 
+    //check if connected to server
+    if(tcpSocket->state() != QAbstractSocket::ConnectedState)
+    {
+        if(chatTabs.contains("All"))
+        {
+            chatTabs["All"]->append("---Not connected to server---");
+        }
+        return;
+    }
+
     QString destination = ui->activelist->currentText(); //accesses the text of drop down active list
 
     if(destination=="All")
     {
         // Send broadcast message to everyone
-        QString fullMsg = LoggedUser + ": " + msg;
-        udpSocket->writeDatagram(
-            fullMsg.toUtf8(),
-            QHostAddress::Broadcast,
-            PORT
-            );
+        QString fullMsg = "BROADCAST:" + LoggedUser + ":" + msg +"\n";
+        tcpSocket->write(fullMsg.toUtf8());
+        tcpSocket->flush();
+
         //show in all tab
         if(chatTabs.contains("All"))
         {
@@ -176,44 +171,13 @@ void MainWindow::sendMessage()
     }
     else{
         //send private messages
-        if(activeClients.contains(destination))
+        QString privateMsg = "PRIVATE:" + destination + ":" + LoggedUser + ":" + msg + "\n";
+        tcpSocket->write(privateMsg.toUtf8());
+        tcpSocket->flush();
+
+        if(chatTabs.contains(destination))
         {
-            QString privatemsg = LoggedUser + " (to " + destination + " only): " + msg;  //eg in form of Sulav (to rasik only): hi rasik
-            QHostAddress targetIP = activeClients.value(destination);
-
-            // Get my own IP for comparison
-            QString myIP = "127.0.0.1";
-            foreach (const QHostAddress &address, QNetworkInterface::allAddresses()) {
-                if (address.protocol() == QAbstractSocket::IPv4Protocol &&
-                    address != QHostAddress::LocalHost &&
-                    !address.toString().startsWith("169.254")) {
-                    myIP = address.toString();
-                    break;
-                }
-            }
-
-            // If target IP matches my IP, both are on same machine - use broadcast
-            if(targetIP.toString() == myIP ||
-                targetIP == QHostAddress::LocalHost ||
-                targetIP.toString() == "127.0.0.1")
-            {
-                // Same device - use broadcast
-                udpSocket->writeDatagram(privatemsg.toUtf8(),
-                                         QHostAddress::Broadcast,
-                                         PORT);
-            }
-            else
-            {
-                // Different device - send directly
-                udpSocket->writeDatagram(privatemsg.toUtf8(),
-                                         targetIP,
-                                         PORT);
-            }
-
-            if(chatTabs.contains(destination))
-            {
-                chatTabs[destination]->append("Me: "+ msg);
-            }
+            chatTabs[destination]->append("Me: " + msg);
         }
     }
     ui->messageEdit->clear();
@@ -221,85 +185,200 @@ void MainWindow::sendMessage()
 
 void MainWindow::receiveMessage()
 {
-    while (udpSocket->hasPendingDatagrams())
+    //read all available data from tcp socket
+    QByteArray data = tcpSocket->readAll();
+    QString allData = QString::fromUtf8(data);
+
+    //split by newlines in case multiple msgs arrived together
+    QStringList messages = allData.split('\n', Qt::SkipEmptyParts);
+
+    for(const QString &msg : messages)
     {
-        QByteArray datagram; //creates bytearray to store received data
-        datagram.resize(udpSocket->pendingDatagramSize()); //resize to next packet's size in bytes
+        if(msg.isEmpty()) continue;
 
-        QHostAddress senderIP; //defines user's info
-        quint16 senderPort;
-
-        udpSocket->readDatagram(datagram.data(), datagram.size(),  //network auto fills senderIP with sender ip address
-                                &senderIP, &senderPort);
-        QString msg = QString::fromUtf8(datagram);
-
-        // Handle server shutdown message
+        //handle server shutdown msg
         if (msg == "SERVER_SHUTDOWN")
         {
-            //append to all tabs possible
             for (QTextEdit *view : chatTabs.values()) {
                 if (view) {
                     view->append("--- Server has disconnected ---");
-                    view->setEnabled(false);  // Disable all chat views
+                    view->setEnabled(false);
                 }
             }
-
             ui->messageEdit->setEnabled(false);
             ui->sendBtn->setEnabled(false);
 
-            //disable the list to choose people
             if(ui->activelist)
             {
                 ui->activelist->setEnabled(false);
             }
 
-            // Disconnect TCP
             if (tcpSocket->state() == QAbstractSocket::ConnectedState) {
                 tcpSocket->disconnectFromHost();
             }
 
-            // Close UDP socket to stop receiving messages
-            udpSocket->close();
-
             continue;
         }
 
-        // Check if this is a server discovery message - code in serverwindow.cpp
-        if (msg.startsWith("SERVER_DISCOVERY"))
+        //handle kicked msg
+        if(msg == "KICKED")
         {
-            // Extract server IP from discovery message
-            QString serverIP = "127.0.0.1";  // Default
-            if (msg.contains(":")) {
-                serverIP = msg.mid(msg.indexOf(':') + 1).trimmed();
+            if(chatTabs.contains("All"))
+            {
+                chatTabs["All"]->append("---You have been disconnected by the server---");
             }
 
-            // Re-register with server if not connected
-            if (tcpSocket->state() != QAbstractSocket::ConnectedState)
+            ui->messageEdit->setEnabled(false);
+            ui->sendBtn->setEnabled(false);
+            if(ui->activelist)
             {
-                // Disconnect first if needed
-                if (tcpSocket->state() != QAbstractSocket::UnconnectedState) {
-                    tcpSocket->abort();
-                }
-                // Connect to the discovered server IP
-                tcpSocket->connectToHost(QHostAddress(serverIP), TCP_PORT);
+                ui->activelist->setEnabled(false);
             }
-            continue; // Don't display this message
+            if(tcpSocket->state() == QAbstractSocket::ConnectedState)
+            {
+                tcpSocket->disconnectFromHost();
+            }
+            continue;
+        }
+        //parse msg format TYPE:sender:msg or Type:recipient:sender:msg
+        QStringList parts = msg.split(':'); //just keeps the part of msg seperate from each of :
+        if(parts.size() < 3) continue; //has to be >=3 due to our format
+
+        QString msgtype = parts[0]; //extract the "TYPE" part from the entire recieved msg
+
+        if(msgtype == "BROADCAST")
+        {
+            QString sender = parts[1];
+            QString message = parts.mid(2).join(':'); //rejoin if the msg itself has ":"
+
+            //dont show your own msg
+            if(sender == LoggedUser) continue;
+
+            if(chatTabs.contains("All"))
+            {
+                chatTabs["All"]->append(sender + ": " + message);
+            }
+
+            //show noti
+            if(windowState() & Qt::WindowMinimized || !isActiveWindow())
+            {
+                trayicon->showMessage(
+                    "New message - Novachat",
+                    sender + ": " + message,
+                    QSystemTrayIcon::Information,
+                    3000);
+            }
         }
 
-        //handle client announce messages
+        else if (msgtype == "PRIVATE")
+        {
+            QString sender = parts[1];
+            QString message = parts.mid(2).join(':');  //modified by server not the exact format as in the mainwindow::sendmsg
+
+            //ensure tab exists for pvt msgs
+            if(!chatTabs.contains(sender))
+            {
+                addChatTab(sender);
+                if(ui->activelist)
+                {
+                    ui->activelist->addItem(sender);
+                }
+                if(!activeClients.contains(sender))
+                {
+                    activeClients.insert(sender,QHostAddress()); //update qmap
+                }
+            }
+            //display pvt msgs in senders tab
+            chatTabs[sender]->append(sender + ": " + message);
+
+            //show noti
+            if (windowState() & Qt::WindowMinimized || !isActiveWindow())
+            {
+                trayicon->showMessage(
+                    "New private message — NovaChat",
+                    sender + ": " + message,
+                    QSystemTrayIcon::Information,
+                    3000
+                    );
+            }
+        }
+
+        else if (msgtype == "SERVER")
+        {
+            QString message = parts.mid(1).join(':');
+
+            if(chatTabs.contains("All"))
+            {
+                chatTabs["All"]->append("Server: " + message);
+            }
+            if (windowState() & Qt::WindowMinimized || !isActiveWindow())
+            {
+                trayicon->showMessage(
+                    "Server message — NovaChat",
+                    "Server: " + message,
+                    QSystemTrayIcon::Information,
+                    3000
+                    );
+            }
+        }
+    }
+}
+
+void MainWindow::receivePresenceAnnouncement()
+{
+    //handle udp announcements
+    while (udpSocket->hasPendingDatagrams())
+    {
+        QByteArray datagram;
+        datagram.resize(udpSocket->pendingDatagramSize());
+
+        QHostAddress senderIP;
+        quint16 senderPort;
+
+        udpSocket->readDatagram(datagram.data(), datagram.size(),
+                                &senderIP, &senderPort);
+        QString msg = QString::fromUtf8(datagram);
+
+        //check for server discovery msg
+        if(msg.startsWith("SERVER_DISCOVERY"))
+        {
+            //extract the server ip
+            QString serverIP = "127.0.0.1";
+            if(msg.contains(":"))
+            {
+                serverIP = msg.mid(msg.indexOf(':')+1).trimmed();
+            }
+
+            //connect to server via TCP if not connected
+            if(tcpSocket->state() != QAbstractSocket::ConnectedState)
+            {
+                if(tcpSocket->state() != QAbstractSocket::UnconnectedState)
+                {
+                    tcpSocket->abort(); //aborts and resets connection
+                }
+                tcpSocket->connectToHost(QHostAddress(serverIP), TCP_PORT);
+                //connects the clients to server
+            }
+            continue;
+        }
+
+        //handle client announce msgs
         if(msg.startsWith("CLIENT_ANNOUNCE:"))
         {
-            QString announcedUser = msg.mid(16).trimmed(); //trims the username right to the :
-            //don't add yourself in the active list
-            if(announcedUser!=LoggedUser && announcedUser!= "Server"){
-                // Always update IP address in case user reconnected from different IP
+            QString announcedUser = msg.mid(16).trimmed(); //trims the username to the right of ":"
+            //dont add yourself
+
+            if(announcedUser != LoggedUser && announcedUser != "Server")
+            {
+                //update IP address
                 activeClients[announcedUser] = senderIP;
 
-                // Only add UI elements if this is a new user
+                //only add ui for a new user
                 if(!chatTabs.contains(announcedUser))
                 {
-                    if(ui->activelist){
-                        ui->activelist->addItem(announcedUser); //add the user to activelist
+                    if(ui->activelist)
+                    {
+                        ui->activelist->addItem(announcedUser);
                     }
                     addChatTab(announcedUser);
                 }
@@ -307,88 +386,6 @@ void MainWindow::receiveMessage()
             continue;
         }
 
-        //extract username and check if it's private
-        int sep = msg.indexOf(':');
-        if(sep!=-1)
-        {
-            QString sender = msg.left(sep).trimmed();
-
-            // Check if this is your own message (before cleaning)
-            // This prevents seeing your own broadcast messages twice
-            if(sender == LoggedUser) {
-                continue;  // Ignore your own messages
-            }
-
-            QString message = msg.mid(sep+1).trimmed();
-
-            //
-            bool isPrivate = sender.contains(" (to " + LoggedUser + " only)");  //sender = sulav (to Rasik only)
-
-            if(sender.contains(" (to ") && sender.contains(" only)") && !isPrivate)
-            {
-                continue;  // Ignore private messages meant for others
-            }
-
-            bool fromServer = sender.startsWith("Server");
-
-            // Clean username for display (remove private message markers)
-            QString cleanUsername = sender;
-            cleanUsername.remove(" (to " + LoggedUser + " only)");  //msg is in form of: Ram (to hari only): msg . so we remove the excess part
-            cleanUsername.remove(" (private)");
-            cleanUsername = cleanUsername.trimmed();
-
-            //Route msgs to appropriate tabs
-            if(!msg.startsWith(LoggedUser + ":"))
-            {
-                if(isPrivate)
-                {
-                    //Ensure tab exists for private messages (in case it arrives before CLIENT_ANNOUNCE)
-                    if(!chatTabs.contains(cleanUsername))
-                    {
-                        addChatTab(cleanUsername);
-                        if(ui->activelist && !activeClients.contains(cleanUsername)){
-                            ui->activelist->addItem(cleanUsername);
-                            activeClients.insert(cleanUsername, senderIP);
-                        }
-                    }
-
-                    // Display private message in sender's private tab
-                    if(chatTabs.contains(cleanUsername))
-                    {
-                        chatTabs[cleanUsername]->append(cleanUsername+": " +message);
-                    }
-                }
-                else if(fromServer)
-                {
-                    // Server messages go to "All" tab
-                    if(chatTabs.contains("All"))
-                    {
-                        chatTabs["All"]->append(cleanUsername+": " +message);
-                    }
-                }
-                else
-                {
-                    // Regular broadcast messages go to "All" tab
-                    //Don't show SERVER_DISCOVERY messages in All tab
-                    if(cleanUsername != "SERVER_DISCOVERY") {
-                        if(chatTabs.contains("All"))
-                        {
-                            chatTabs["All"]->append(cleanUsername+": " +message);
-                        }
-                    }
-                }
-
-                //----for notifications---
-                if (windowState() & Qt::WindowMinimized || !isActiveWindow()) //windowState() returns if window is minimized or maximized
-                {
-                    trayicon->showMessage(
-                        "New message — NovaChat",
-                        cleanUsername + ": "+message, QSystemTrayIcon::Information,
-                        3000 //notification for 3 sec
-                        );
-                }
-            }
-        }
     }
 }
 

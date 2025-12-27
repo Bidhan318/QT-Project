@@ -35,6 +35,7 @@ private slots:
     void onTcpError(QAbstractSocket::SocketError error);
     void onTabChanged(int index);
     void onActivelistChanged(const QString& username);
+    void receivePresenceAnnouncement();
 
     void on_logout_clicked();
 

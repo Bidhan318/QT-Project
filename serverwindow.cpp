@@ -21,7 +21,7 @@ ServerWindow::ServerWindow(QString username, QWidget *parent)
     connect(discoveryTimer, &QTimer::timeout, this, &ServerWindow::broadcastServerPresence);
     discoveryTimer->start(2000); // Every 2 seconds
 
-    // UDP socket setup for receiving messages
+    // UDP socket setup for presence announcements
     udpSocket = new QUdpSocket(this);
     bool bindResult = udpSocket->bind(QHostAddress::AnyIPv4, PORT,
                                       QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
@@ -34,7 +34,7 @@ ServerWindow::ServerWindow(QString username, QWidget *parent)
     // Send initial discovery
     broadcastServerPresence();
 
-    // TCP server setup for presence detection
+    // TCP server setup for messaging
     tcpServer = new QTcpServer(this);
 
     // Start listening silently
@@ -45,8 +45,6 @@ ServerWindow::ServerWindow(QString username, QWidget *parent)
                              "Failed to start TCP server: " + tcpServer->errorString());
     }
 
-    connect(udpSocket, &QUdpSocket::readyRead,
-            this, &ServerWindow::receiveMessage);
     connect(tcpServer, &QTcpServer::newConnection,
             this, &ServerWindow::onNewConnection);
     connect(ui->msg_in, &QLineEdit::returnPressed,
@@ -95,7 +93,7 @@ void ServerWindow::onNewConnection()  //called auto when a new client connects
     clientSockets.insert(clientSocket, "");
 }
 
-void ServerWindow::onClientDataReceived()
+void ServerWindow::onClientDataReceived() //this routes the msg from one client to others
 {
     //identifies which client sent data
     QTcpSocket *clientSocket = qobject_cast<QTcpSocket*>(sender());  //sender returns pointer to the one that emitted signal
@@ -103,23 +101,103 @@ void ServerWindow::onClientDataReceived()
     if (!clientSocket) return;
 
     QByteArray data = clientSocket->readAll(); //reads all data from this client
-    QString message = QString::fromUtf8(data);
+    QString alldata = QString::fromUtf8(data);
 
-    // Expected format: "LOGIN:username"
-    if (message.startsWith("LOGIN:"))  //received from MainWindow::onConnectedToServer
+    //split by new lines in case multiple msg arrive
+    QStringList messages = alldata.split('\n', Qt::SkipEmptyParts);
+
+    for (const QString &message : messages)
     {
-        QString username = message.mid(6).trimmed();  //.mid(6): Extracts substring starting at index 6. "LOGIN:ram" → starts at index 6 → "ram"
+        if(message.isEmpty()) continue;
 
-        if (username.isEmpty()) return;
+        //handle login
+        if(message.startsWith("LOGIN:"))
+        {
+            QString username = message.mid(6).trimmed();
+            if(username.isEmpty()) continue;
 
-        // Update socket mapping
-        clientSockets[clientSocket] = username; //changes the empty space in newConnection func to username
+            clientSockets[clientSocket] = username; //update socket qmap
+            addClientTab(username);
 
-        // Add tab for this client
-        addClientTab(username); //func def below
+            if(ui->client_name)
+            {
+                ui->client_name->append(username + " has joined the chat");
+            }
+            continue;
+        }
 
-        if (ui->client_name) {
-            ui->client_name->append(username + " has joined the chat");
+        //get username for this socket from qmap
+        QString senderUsername = clientSockets.value(clientSocket, "");
+        if(senderUsername.isEmpty()) continue; //not logged in yet
+
+        //parse msg format
+        QStringList parts = message.split(':');
+        if(parts.size() < 3) continue;
+
+        QString msgtype = parts[0];
+
+        if(msgtype == "BROADCAST")
+        {
+            QString sender = parts[1];
+            QString text = parts.mid(2).join(':');
+
+            //display in senders tab
+            if(clientTabs.contains(sender))
+            {
+                QTextEdit *view = clientTabs[sender];
+                if(view)
+                {
+                    view->append(sender + ": " + text);
+                }
+            }
+
+            //broadcast to all other clients
+            QString broadcastmsg = "BROADCAST:" + sender + ":" + text + "\n";
+            for(auto it = clientSockets.begin(); it != clientSockets.end(); ++it) //for all clients
+            {
+                QTcpSocket *socket = it.key();
+                QString username = it.value();
+
+                if(!username.isEmpty() && socket->state() == QAbstractSocket::ConnectedState)
+                {
+                    socket->write(broadcastmsg.toUtf8());
+                    socket->flush();
+                }
+            }
+        }
+
+        else if (msgtype == "PRIVATE")
+        {
+            QString recipient = parts[1];
+            QString sender = parts[2];
+            QString text = parts.mid(3).join(':');
+
+            //display in senders tab
+            if(clientTabs.contains(sender))
+            {
+                QTextEdit *view = clientTabs[sender];
+                if(view)
+                {
+                    view->append(sender + " (to " + recipient + "): " + text);
+                }
+            }
+
+            //forward msg to reciever
+            QString pvtmsg = "PRIVATE:" + sender + ":" + text + "\n";
+            for(auto it = clientSockets.begin(); it != clientSockets.end() ; ++it)
+            {
+                if(it.value() == recipient)
+                {
+                    QTcpSocket *recipientsocket = it.key();
+                    if(recipientsocket->state() == QAbstractSocket::ConnectedState)
+                    {
+                        recipientsocket->write(pvtmsg.toUtf8());
+                        recipientsocket->flush();
+                    }
+                    break;
+                }
+            }
+
         }
     }
 }
@@ -209,48 +287,6 @@ void ServerWindow::removeClientTab(const QString &username)
     delete view;
 }
 
-void ServerWindow::receiveMessage()
-{
-    if (!udpSocket) return;  //safety check
-
-    while (udpSocket->hasPendingDatagrams())
-    {
-        QByteArray datagram;
-        datagram.resize(udpSocket->pendingDatagramSize());  //change the datagram size to next udp packet's size
-        udpSocket->readDatagram(datagram.data(), datagram.size());
-        QString msg = QString::fromUtf8(datagram);
-
-        if(msg.startsWith("CLIENT_ANNOUNCE")) //ignore client announce messages
-        {
-            continue;
-        }
-
-        // Format: username: message
-        int sep = msg.indexOf(':'); //finds index of colon(:) in the sent format msg
-        if (sep == -1) continue; //-1 if not found
-
-        QString username = msg.left(sep).trimmed(); //trims the left part that is username
-        QString text = msg.mid(sep + 1).trimmed();  //trims the msg part
-
-        if (username.contains("(to ") && username.contains(" only)")) {
-            continue;  // Skip private messages, don't display them on server
-        }
-
-        // Clean username for display
-        QString cleanUsername = username;
-        cleanUsername.remove(" (private)");
-        cleanUsername = cleanUsername.trimmed();
-
-        // Append message to correct tab if it exists
-        if (clientTabs.contains(cleanUsername))
-        {
-            QTextEdit *view = clientTabs[cleanUsername]; //edit in correct tab
-            if (view) {
-                view->append(cleanUsername + ": " + text); //append the text in the tab of the user
-            }
-        }
-    }
-}
 
 void ServerWindow::on_send_btn_clicked()
 {
@@ -258,9 +294,21 @@ void ServerWindow::on_send_btn_clicked()
     if (msg.isEmpty()) return;
 
     // Broadcast server message to all clients
-    QString fullmsg = "Server: " + msg;
-    udpSocket->writeDatagram(fullmsg.toUtf8(),
-                             QHostAddress::Broadcast, PORT);
+    QString servermsg = "SERVER: " + msg + "\n";
+
+    //send msgs in tcp for all clients
+    for(auto it = clientSockets.begin(); it != clientSockets.end(); ++it)
+    {
+        QTcpSocket *socket = it.key();
+        QString username = it.value();
+        if (!username.isEmpty() && socket->state() == QAbstractSocket::ConnectedState)
+        {
+            socket->write(servermsg.toUtf8());
+            socket->flush();
+        }
+
+    }
+
     ui->msg_in->clear();
 }
 
@@ -272,13 +320,19 @@ void ServerWindow::on_disconnect_btn_clicked()
         discoveryTimer->stop();
     }
 
-    // Send shutdown signal to all clients via UDP
-    QString shutdownMsg = "SERVER_SHUTDOWN";
-    udpSocket->writeDatagram(
-        shutdownMsg.toUtf8(),
-        QHostAddress::Broadcast,
-        PORT
-        );
+    // Send shutdown signal to all clients via TCP
+    QString shutdownMsg = "SERVER_SHUTDOWN\n";
+
+    for (auto it = clientSockets.begin(); it != clientSockets.end(); ++it)
+    {
+        QTcpSocket *socket = it.key();
+        if (socket && socket->state() == QAbstractSocket::ConnectedState)
+        {
+            socket->write(shutdownMsg.toUtf8());
+            socket->flush();
+            socket->waitForBytesWritten(1000);
+        }
+    }
 
     // Give clients time to receive the shutdown message
     QThread::msleep(100);
@@ -339,7 +393,7 @@ void ServerWindow::onTabscloseRequested(int index)
 
             if (socket && socket->state() == QAbstractSocket::ConnectedState)
             {
-                socket->write("kicked"); //sends msg in tcpsocket and checked in mainwindow::onDisconnectedFromServer
+                socket->write("KICKED\n"); //sends msg in tcpsocket and checked in mainwindow::onDisconnectedFromServer
                 socket->flush();
                 socket->disconnectFromHost();
                 socket->waitForDisconnected(1000);
