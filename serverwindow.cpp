@@ -125,6 +125,19 @@ void ServerWindow::onClientDataReceived() //this routes the msg from one client 
             }
             continue;
         }
+        //handle logout
+        if(message.startsWith("LOGOUT:"))
+        {
+
+            QString username = message.mid(7).trimmed();
+            if(username.isEmpty()) continue;
+
+            removeClientTab(username);
+            clientSockets.remove(clientSocket);
+
+            clientSocket->disconnectFromHost();
+            continue;
+        }
 
         //get username for this socket from qmap
         QString senderUsername = clientSockets.value(clientSocket, "");
@@ -294,7 +307,7 @@ void ServerWindow::on_send_btn_clicked()
     if (msg.isEmpty()) return;
 
     // Broadcast server message to all clients
-    QString servermsg = "SERVER: " + msg + "\n";
+    QString servermsg = "SERVER:" + msg + "\n";
 
     //send msgs in tcp for all clients
     for(auto it = clientSockets.begin(); it != clientSockets.end(); ++it)
@@ -393,7 +406,7 @@ void ServerWindow::onTabscloseRequested(int index)
 
             if (socket && socket->state() == QAbstractSocket::ConnectedState)
             {
-                socket->write("KICKED\n"); //sends msg in tcpsocket and checked in mainwindow::onDisconnectedFromServer
+                socket->write("KICKED\n"); //sends msg in tcpsocket and checked in mainwindow::recievemsg
                 socket->flush();
                 socket->disconnectFromHost();
                 socket->waitForDisconnected(1000);
@@ -407,6 +420,8 @@ void ServerWindow::onTabscloseRequested(int index)
 
 void ServerWindow::on_logout_clicked()
 {
+    on_disconnect_btn_clicked(); //because in tcp if server closes msg passing is not gonna work anyway
+
     loginwindow = new Login_Window();
     loginwindow->show();
     close();

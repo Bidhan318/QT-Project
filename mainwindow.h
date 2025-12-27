@@ -36,6 +36,7 @@ private slots:
     void onTabChanged(int index);
     void onActivelistChanged(const QString& username);
     void receivePresenceAnnouncement();
+    void announceDeparture();
 
     void on_logout_clicked();
 
@@ -60,6 +61,8 @@ private:
     void addChatTab(const QString &username);
     void removeChatTab(const QString &username);
     QTextEdit* getCurrentChatView();
+
+    QTimer* announcementTimer ;
 };
 
 #endif // MAINWINDOW_H

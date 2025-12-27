@@ -9,6 +9,8 @@
 #include <QString>
 #include <QNetworkInterface>
 #include <QDebug>
+#include <QThread>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QString username, QWidget *parent)
     : QMainWindow(parent)
@@ -28,7 +30,7 @@ MainWindow::MainWindow(QString username, QWidget *parent)
     tcpSocket = new QTcpSocket(this);
 
     // Set up periodic presence announcement (every 3 seconds)
-    QTimer *announcementTimer = new QTimer(this);
+    announcementTimer = new QTimer(this);
     connect(announcementTimer, &QTimer::timeout, this, &MainWindow::announcePresence);
     announcementTimer->start(3000); // Announce every 3 seconds
 
@@ -88,9 +90,16 @@ MainWindow::MainWindow(QString username, QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    announceDeparture();
+
     // Notify server of disconnect
     if (tcpSocket->state() == QAbstractSocket::ConnectedState)
     {
+        QString logoutmsg = "LOGOUT:" + LoggedUser + "\n";
+        tcpSocket->write(logoutmsg.toUtf8());
+        tcpSocket->flush();
+        tcpSocket->waitForBytesWritten(500);
+
         tcpSocket->disconnectFromHost();
         tcpSocket->waitForDisconnected(1000); //waits 1000ms = 1sec for disconnect to complete
     }
@@ -223,6 +232,21 @@ void MainWindow::receiveMessage()
         //handle kicked msg
         if(msg == "KICKED")
         {
+            // STOP announcing presence immediately
+            if(announcementTimer)
+            {
+                announcementTimer->stop();
+            }
+
+            // Announce departure
+            announceDeparture();
+
+            // Close UDP socket to stop receiving discovery messages
+            if(udpSocket)
+            {
+                udpSocket->close();
+            }
+
             if(chatTabs.contains("All"))
             {
                 chatTabs["All"]->append("---You have been disconnected by the server---");
@@ -238,8 +262,18 @@ void MainWindow::receiveMessage()
             {
                 tcpSocket->disconnectFromHost();
             }
+
+            // Show message box to inform user
+            QMessageBox::information(this, "Kicked", "You have been disconnected by the server.");
+
+            // Open login window and destroy this window
+            loginwindow = new Login_Window();
+            loginwindow->show();
+            deleteLater();  // Completely destroy MainWindow
             continue;
         }
+
+
         //parse msg format TYPE:sender:msg or Type:recipient:sender:msg
         QStringList parts = msg.split(':'); //just keeps the part of msg seperate from each of :
         if(parts.size() < 3) continue; //has to be >=3 due to our format
@@ -386,6 +420,29 @@ void MainWindow::receivePresenceAnnouncement()
             continue;
         }
 
+        if(msg.startsWith("CLIENT_DEPARTURE:"))
+        {
+            QString departedUser = msg.mid(17).trimmed();
+            if(departedUser != LoggedUser && departedUser != "Server")
+            {
+                // Remove from active clients qmap
+                activeClients.remove(departedUser);
+
+                // Remove from active list dropdown
+                if(ui->activelist)
+                {
+                    int index = ui->activelist->findText(departedUser);
+                    if(index != -1)
+                    {
+                        ui->activelist->removeItem(index);
+                    }
+                }
+
+                // Remove chat tab
+                removeChatTab(departedUser);
+            }
+            continue;
+        }
     }
 }
 
@@ -435,8 +492,25 @@ void MainWindow::announcePresence()
     // Broadcast presence to all clients so they know we're online
     QString announce = "CLIENT_ANNOUNCE:"+LoggedUser;
     udpSocket->writeDatagram(announce.toUtf8(),QHostAddress::Broadcast,PORT);
+    //send multiple threads to ensure delivery
+    QThread::msleep(50);
+    udpSocket->writeDatagram(announce.toUtf8(), QHostAddress::Broadcast, PORT);
+    QThread::msleep(50);
+    udpSocket->writeDatagram(announce.toUtf8(), QHostAddress::Broadcast, PORT);
 }
 
+void MainWindow::announceDeparture()
+{
+    //broadcast departure to all clients
+    QString departure = "CLIENT_DEPARTURE:" + LoggedUser;
+    udpSocket->writeDatagram(departure.toUtf8(), QHostAddress::Broadcast, PORT);
+
+    //send multiple threads to ensure delivery
+    QThread::msleep(50);
+    udpSocket->writeDatagram(departure.toUtf8(), QHostAddress::Broadcast, PORT);
+    QThread::msleep(50);
+    udpSocket->writeDatagram(departure.toUtf8(), QHostAddress::Broadcast, PORT);
+}
 
 //refine ui funcs
 
@@ -469,8 +543,27 @@ void MainWindow::onActivelistChanged(const QString& username)
 
 void MainWindow::on_logout_clicked()
 {
+    if(announcementTimer)
+    {
+        announcementTimer->stop();
+    }
+    announceDeparture();
+
+    if (tcpSocket->state() == QAbstractSocket::ConnectedState) //on logout notify via tcp
+    {
+        QString logoutMsg = "LOGOUT:" + LoggedUser + "\n";
+        tcpSocket->write(logoutMsg.toUtf8());
+        tcpSocket->flush();
+        tcpSocket->waitForBytesWritten(1000);
+
+        tcpSocket->disconnectFromHost();
+        tcpSocket->waitForDisconnected(1000);
+    }
+
     loginwindow = new Login_Window();
     loginwindow->show();
-    close();
+
+    deleteLater();
+
 }
 
