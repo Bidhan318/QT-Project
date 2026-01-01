@@ -53,7 +53,11 @@ constexpr auto qt_meta_stringdata_CLASSMainWindowENDCLASS = QtMocHelpers::string
     "username",
     "receivePresenceAnnouncement",
     "announceDeparture",
-    "on_logout_clicked"
+    "on_logout_clicked",
+    "closeEvent",
+    "QCloseEvent*",
+    "event",
+    "on_attachFile_clicked"
 );
 #else  // !QT_MOC_HAS_STRINGDATA
 #error "qtmochelpers.h not found or too old."
@@ -66,7 +70,7 @@ Q_CONSTINIT static const uint qt_meta_data_CLASSMainWindowENDCLASS[] = {
       12,       // revision
        0,       // classname
        0,    0, // classinfo
-      12,   14, // methods
+      14,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -74,18 +78,20 @@ Q_CONSTINIT static const uint qt_meta_data_CLASSMainWindowENDCLASS[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags, initial metatype offsets
-       1,    0,   86,    2, 0x08,    1 /* Private */,
-       3,    0,   87,    2, 0x08,    2 /* Private */,
-       4,    0,   88,    2, 0x08,    3 /* Private */,
-       5,    0,   89,    2, 0x08,    4 /* Private */,
-       6,    0,   90,    2, 0x08,    5 /* Private */,
-       7,    0,   91,    2, 0x08,    6 /* Private */,
-       8,    1,   92,    2, 0x08,    7 /* Private */,
-      11,    1,   95,    2, 0x08,    9 /* Private */,
-      13,    1,   98,    2, 0x08,   11 /* Private */,
-      15,    0,  101,    2, 0x08,   13 /* Private */,
-      16,    0,  102,    2, 0x08,   14 /* Private */,
-      17,    0,  103,    2, 0x08,   15 /* Private */,
+       1,    0,   98,    2, 0x08,    1 /* Private */,
+       3,    0,   99,    2, 0x08,    2 /* Private */,
+       4,    0,  100,    2, 0x08,    3 /* Private */,
+       5,    0,  101,    2, 0x08,    4 /* Private */,
+       6,    0,  102,    2, 0x08,    5 /* Private */,
+       7,    0,  103,    2, 0x08,    6 /* Private */,
+       8,    1,  104,    2, 0x08,    7 /* Private */,
+      11,    1,  107,    2, 0x08,    9 /* Private */,
+      13,    1,  110,    2, 0x08,   11 /* Private */,
+      15,    0,  113,    2, 0x08,   13 /* Private */,
+      16,    0,  114,    2, 0x08,   14 /* Private */,
+      17,    0,  115,    2, 0x08,   15 /* Private */,
+      18,    1,  116,    2, 0x08,   16 /* Private */,
+      21,    0,  119,    2, 0x08,   18 /* Private */,
 
  // slots: parameters
     QMetaType::Void,
@@ -99,6 +105,8 @@ Q_CONSTINIT static const uint qt_meta_data_CLASSMainWindowENDCLASS[] = {
     QMetaType::Void, QMetaType::QString,   14,
     QMetaType::Void,
     QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void, 0x80000000 | 19,   20,
     QMetaType::Void,
 
        0        // eod
@@ -139,6 +147,11 @@ Q_CONSTINIT const QMetaObject MainWindow::staticMetaObject = { {
         // method 'announceDeparture'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
         // method 'on_logout_clicked'
+        QtPrivate::TypeAndForceComplete<void, std::false_type>,
+        // method 'closeEvent'
+        QtPrivate::TypeAndForceComplete<void, std::false_type>,
+        QtPrivate::TypeAndForceComplete<QCloseEvent *, std::false_type>,
+        // method 'on_attachFile_clicked'
         QtPrivate::TypeAndForceComplete<void, std::false_type>
     >,
     nullptr
@@ -162,6 +175,8 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 9: _t->receivePresenceAnnouncement(); break;
         case 10: _t->announceDeparture(); break;
         case 11: _t->on_logout_clicked(); break;
+        case 12: _t->closeEvent((*reinterpret_cast< std::add_pointer_t<QCloseEvent*>>(_a[1]))); break;
+        case 13: _t->on_attachFile_clicked(); break;
         default: ;
         }
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
@@ -197,13 +212,13 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 12)
+        if (_id < 14)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 12;
+        _id -= 14;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 12)
+        if (_id < 14)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 12;
+        _id -= 14;
     }
     return _id;
 }

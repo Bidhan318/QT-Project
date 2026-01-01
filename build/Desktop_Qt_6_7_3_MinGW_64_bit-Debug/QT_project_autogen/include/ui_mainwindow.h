@@ -17,6 +17,7 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenuBar>
+#include <QtWidgets/QProgressBar>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QStatusBar>
@@ -39,9 +40,14 @@ public:
     QHBoxLayout *horizontalLayout;
     QLabel *label;
     QComboBox *activelist;
+    QPushButton *attachFile;
     QLabel *label_2;
     QLineEdit *messageEdit;
     QPushButton *sendBtn;
+    QHBoxLayout *horizontalLayout_3;
+    QPushButton *cancelFileBtn;
+    QProgressBar *fileProgressBar;
+    QLabel *fileStatusLabel;
     QMenuBar *menubar;
     QStatusBar *statusbar;
 
@@ -96,6 +102,13 @@ public:
 
         horizontalLayout->addWidget(activelist);
 
+        attachFile = new QPushButton(centralwidget);
+        attachFile->setObjectName("attachFile");
+        attachFile->setMaximumSize(QSize(40, 16777215));
+        attachFile->setIconSize(QSize(40, 40));
+
+        horizontalLayout->addWidget(attachFile);
+
         label_2 = new QLabel(centralwidget);
         label_2->setObjectName("label_2");
 
@@ -113,6 +126,27 @@ public:
 
 
         verticalLayout->addLayout(horizontalLayout);
+
+        horizontalLayout_3 = new QHBoxLayout();
+        horizontalLayout_3->setObjectName("horizontalLayout_3");
+        cancelFileBtn = new QPushButton(centralwidget);
+        cancelFileBtn->setObjectName("cancelFileBtn");
+
+        horizontalLayout_3->addWidget(cancelFileBtn);
+
+        fileProgressBar = new QProgressBar(centralwidget);
+        fileProgressBar->setObjectName("fileProgressBar");
+        fileProgressBar->setValue(24);
+
+        horizontalLayout_3->addWidget(fileProgressBar);
+
+        fileStatusLabel = new QLabel(centralwidget);
+        fileStatusLabel->setObjectName("fileStatusLabel");
+
+        horizontalLayout_3->addWidget(fileStatusLabel);
+
+
+        verticalLayout->addLayout(horizontalLayout_3);
 
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
@@ -137,9 +171,12 @@ public:
         label_4->setText(QString());
         logout->setText(QCoreApplication::translate("MainWindow", "Logout", nullptr));
         label->setText(QCoreApplication::translate("MainWindow", "To:", nullptr));
+        attachFile->setText(QCoreApplication::translate("MainWindow", "\360\237\223\216", nullptr));
         label_2->setText(QCoreApplication::translate("MainWindow", "Message:", nullptr));
         messageEdit->setPlaceholderText(QCoreApplication::translate("MainWindow", "Type your message...", nullptr));
         sendBtn->setText(QCoreApplication::translate("MainWindow", "Send", nullptr));
+        cancelFileBtn->setText(QCoreApplication::translate("MainWindow", "Cancel", nullptr));
+        fileStatusLabel->setText(QCoreApplication::translate("MainWindow", "TextLabel", nullptr));
     } // retranslateUi
 
 };

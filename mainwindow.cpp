@@ -11,11 +11,14 @@
 #include <QDebug>
 #include <QThread>
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QCloseEvent>
 
 MainWindow::MainWindow(QString username, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , LoggedUser(username)
+    , hasattachedFile(false)
 {
     ui->setupUi(this);
 
@@ -86,24 +89,64 @@ MainWindow::MainWindow(QString username, QWidget *parent)
 
     // Connect to server
     connectToServer();
+
+
+    // HIDE FILE TRANSFER WIDGETS INITIALLY (just add these lines!)
+    if (ui->fileProgressBar) {
+        ui->fileProgressBar->setVisible(false);
+        ui->fileProgressBar->setValue(0);
+    }
+
+    if (ui->fileStatusLabel) {
+        ui->fileStatusLabel->setVisible(false);
+        ui->fileStatusLabel->setText("");
+    }
+
+    if (ui->cancelFileBtn) {
+        ui->cancelFileBtn->setVisible(false);
+    }
 }
 
 MainWindow::~MainWindow()
 {
+    if(announcementTimer)
+    {
+        announcementTimer->stop();
+    }
     announceDeparture();
 
     // Notify server of disconnect
     if (tcpSocket->state() == QAbstractSocket::ConnectedState)
     {
-        QString logoutmsg = "LOGOUT:" + LoggedUser + "\n";
-        tcpSocket->write(logoutmsg.toUtf8());
-        tcpSocket->flush();
-        tcpSocket->waitForBytesWritten(500);
-
         tcpSocket->disconnectFromHost();
         tcpSocket->waitForDisconnected(1000); //waits 1000ms = 1sec for disconnect to complete
     }
     delete ui;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)  //for when window directly closed so the activelist updates
+{
+    if(isLoggingOut) //no manual cleanup already handled
+    {
+        event->accept();
+        return;
+    }
+
+    // Stop presence announcements
+    if (announcementTimer)
+        announcementTimer->stop();
+
+    // Notify other clients (UDP)
+    announceDeparture();
+
+    // Just disconnect TCP (server will handle cleanup)
+    if (tcpSocket && tcpSocket->state() == QAbstractSocket::ConnectedState)
+    {
+        tcpSocket->disconnectFromHost();
+        tcpSocket->waitForDisconnected(500);
+    }
+
+    event->accept();  // allow window to close
 }
 
 void MainWindow::connectToServer()
@@ -131,6 +174,7 @@ void MainWindow::onConnectedToServer()  //auto called when tcp connection succee
 
 void MainWindow::onDisconnectedFromServer() //for when cross pressed by server in tab list
 {
+
     if (chatTabs.contains("All")) {
         chatTabs["All"]->append("--- Disconnected from server ---");
     }
@@ -232,11 +276,13 @@ void MainWindow::receiveMessage()
         //handle kicked msg
         if(msg == "KICKED")
         {
+            isLoggingOut = true;
             // STOP announcing presence immediately
             if(announcementTimer)
             {
                 announcementTimer->stop();
             }
+            announceDeparture();
 
             // Close UDP socket to stop receiving discovery messages
             if(udpSocket)
@@ -500,13 +546,12 @@ void MainWindow::announceDeparture()
 {
     //broadcast departure to all clients
     QString departure = "CLIENT_DEPARTURE:" + LoggedUser;
-    udpSocket->writeDatagram(departure.toUtf8(), QHostAddress::Broadcast, PORT);
 
-    //send multiple threads to ensure delivery
-    QThread::msleep(50);
-    udpSocket->writeDatagram(departure.toUtf8(), QHostAddress::Broadcast, PORT);
-    QThread::msleep(50);
-    udpSocket->writeDatagram(departure.toUtf8(), QHostAddress::Broadcast, PORT);
+    for (int i = 0; i < 3; i++) {
+        udpSocket->writeDatagram(departure.toUtf8(), QHostAddress::Broadcast, PORT);
+        QCoreApplication::processEvents();  // processes all other pending udp packets
+        QThread::msleep(50);
+    }
 }
 
 //refine ui funcs
@@ -540,10 +585,12 @@ void MainWindow::onActivelistChanged(const QString& username)
 
 void MainWindow::on_logout_clicked()
 {
+    isLoggingOut = true; //so that the overide func doesnt occur
     if(announcementTimer)
     {
         announcementTimer->stop();
     }
+    announceDeparture();
 
     if (tcpSocket->state() == QAbstractSocket::ConnectedState) //on logout notify via tcp
     {
@@ -562,4 +609,116 @@ void MainWindow::on_logout_clicked()
     deleteLater();
 
 }
+
+
+void MainWindow::on_attachFile_clicked()
+{
+    if(hasattachedFile) //check if file already attached
+    {
+        // Clear internal state
+        pendingFilePath.clear();
+        hasattachedFile = false;
+
+        // Reset message input placeholder
+        ui->messageEdit->setPlaceholderText("Type a message...");
+
+        // Reset attach button
+        if (ui->attachFile) {
+            ui->attachFile->setText("📎");
+            ui->attachFile->setToolTip("Attach file");
+        }
+        // Hide status label
+        if (ui->fileStatusLabel) {
+            ui->fileStatusLabel->hide();
+            ui->fileStatusLabel->setText("");
+        }
+        return;
+    }
+    //check reciever
+    QString recipient = ui->activelist->currentText();
+    if(recipient == "All"){
+        QMessageBox::warning(this, "File Transfer",
+                             "Cannot send files to 'All'. Please select a specific user.");
+        return;
+    }
+    //open file browser
+    QString filepath = QFileDialog::getOpenFileName(
+        this,
+        "Select FIle to Attach",
+        QDir::homePath(),
+        "All Files (*);;Documents (*.pdf *.docx *.txt);;Images (*.jpg *.png *.gif);;Videos (*.mp4 *.avi)"
+        );
+
+    if(filepath.isEmpty()) return; //user canceled
+    //validate file
+    QFileInfo fileinfo(filepath);
+    qint64 filesize = fileinfo.size();
+
+    if (filesize > 2147483648LL) {  // 2GB limit
+        QMessageBox::warning(this, "File Too Large",
+                             "File size exceeds 2GB limit.");
+        return;
+    }
+
+    if(!fileinfo.exists() || !fileinfo.isReadable())
+    {
+        QMessageBox::critical(this, "Error",
+                              "Cannot read file.");
+        return;
+    }
+
+    //store file
+    pendingFilePath = filepath;
+    hasattachedFile = true;
+
+    //update ui to show attachment
+    QString filename = fileinfo.fileName();
+    QString size = QString::number(filesize / 1024.0 /1024.0 ,'f' , 2) + " MB";
+
+    // Get icon based on file type
+    QString icon = "📎";  // Default
+    QString ext = fileinfo.suffix().toLower(); //gets the extension
+
+    if (ext == "jpg" || ext == "png" || ext == "gif" || ext == "jpeg" || ext == "bmp") {
+        icon = "🖼️";
+    } else if (ext == "pdf") {
+        icon = "📄";
+    } else if (ext == "doc" || ext == "docx" || ext == "txt") {
+        icon = "📝";
+    } else if (ext == "mp4" || ext == "avi" || ext == "mkv" || ext == "mov") {
+        icon = "🎬";
+    } else if (ext == "zip" || ext == "rar" || ext == "7z") {
+        icon = "📦";
+    } else if (ext == "mp3" || ext == "wav" || ext == "flac") {
+        icon = "🎵";
+    }
+
+     //Update message input placeholder
+    QString placeholderText = QString("%1 %2 (%3) - Type caption (optional)")
+                                  .arg(icon)
+                                  .arg(filename)
+                                  .arg(size);
+    ui->messageEdit->setPlaceholderText(placeholderText);
+
+    // Change attach button to "remove" button
+    if (ui->attachFile) {
+        ui->attachFile->setText("✖");
+        ui->attachFile->setToolTip("Remove attachment");
+    }
+
+    //Show a label with file info
+    if (ui->fileStatusLabel) {
+        ui->fileStatusLabel->setText(QString("%1 %2 (%3) attached")
+                                         .arg(icon).arg(filename).arg(size));
+        ui->fileStatusLabel->show();
+    }
+    //Show in chat ( so user knows file is ready)
+    if (chatTabs.contains(recipient)) {
+        chatTabs[recipient]->append(QString("--- File ready to send: %1 %2 (%3) ---")
+                                        .arg(icon).arg(filename).arg(size));
+    }
+}
+
+
+
 

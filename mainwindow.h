@@ -37,8 +37,11 @@ private slots:
     void onActivelistChanged(const QString& username);
     void receivePresenceAnnouncement();
     void announceDeparture();
-
     void on_logout_clicked();
+    void closeEvent(QCloseEvent *event) override; //for when window directly closed so the activelist updates
+    //file send
+    void on_attachFile_clicked();
+
 
 private:
     Ui::MainWindow *ui;
@@ -63,6 +66,11 @@ private:
     QTextEdit* getCurrentChatView();
 
     QTimer* announcementTimer ;
+    bool isLoggingOut;
+
+    //file send
+    QString pendingFilePath;
+    bool hasattachedFile;
 };
 
 #endif // MAINWINDOW_H
