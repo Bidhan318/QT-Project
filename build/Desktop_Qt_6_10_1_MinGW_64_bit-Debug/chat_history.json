@@ -1,0 +1,26 @@
+{
+    "All": [
+        {
+            "from": "rasik",
+            "message": "hello"
+        },
+        {
+            "from": "rasik",
+            "message": "k xa yar"
+        }
+    ],
+    "rasik": [
+        {
+            "from": "user123",
+            "message": "hello hello"
+        },
+        {
+            "from": "user123",
+            "message": "hajur"
+        },
+        {
+            "from": "rasik",
+            "message": "vana na k vayo"
+        }
+    ]
+}

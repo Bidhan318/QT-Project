@@ -1,0 +1,16 @@
+# ninja log v6
+4	21	7889857964562773	CMakeFiles/clean.additional	baedbe210acaa455
+22	27	7889857964734744	clean	577b940aee94fbd7
+21	557	7889858082054294	QT_project_autogen/timestamp	3acffc1670af6cb8
+21	557	7889858082054294	QT_project_autogen/mocs_compilation.cpp	3acffc1670af6cb8
+21	557	7889858082054294	C:/Users/ACER/Downloads/QT-Project-reverse/QT-Project-reverse/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/QT_project_autogen/timestamp	3acffc1670af6cb8
+21	557	7889858082054294	C:/Users/ACER/Downloads/QT-Project-reverse/QT-Project-reverse/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	3acffc1670af6cb8
+561	611	7889858083165029	QT_project_autogen/EWIEGA46WW/qrc_resources.cpp	e1f6063bbacbab3e
+561	611	7889858083165029	C:/Users/ACER/Downloads/QT-Project-reverse/QT-Project-reverse/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/QT_project_autogen/EWIEGA46WW/qrc_resources.cpp	e1f6063bbacbab3e
+624	891	7889858083374114	CMakeFiles/QT_project.dir/QT_project_autogen/EWIEGA46WW/qrc_resources.cpp.obj	ab2c9923eee5b6a3
+614	2278	7889858083275826	CMakeFiles/QT_project.dir/main.cpp.obj	2e8ca4e35265df1a
+611	2813	7889858083240670	CMakeFiles/QT_project.dir/QT_project_autogen/mocs_compilation.cpp.obj	c42a3572131d67fa
+617	3108	7889858083303466	CMakeFiles/QT_project.dir/login_window.cpp.obj	b38ac5dae395a3ab
+621	3508	7889858083344206	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	d1dd8d0dfab6fc57
+619	3952	7889858083324099	CMakeFiles/QT_project.dir/mainwindow.cpp.obj	b8d1cd3b6436bf35
+3953	4790	7889858116662285	QT_project.exe	789fc4066fa39f72
