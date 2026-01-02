@@ -1,6 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-
+#include "login_window.h"
 #include <QMainWindow>
 #include <QTextEdit>
 #include <QMap>
@@ -12,6 +12,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QDateTime>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -44,7 +45,7 @@ private slots:
 private:
     // UI
     Ui::MainWindow *ui;
-
+    Login_Window *loginwindow;
     // user
     QString LoggedUser;
 
@@ -71,9 +72,6 @@ private:
     void loadChatHistory();
     void saveChatHistory();
 
-    void appendMessage(QTextEdit *view,
-                       const QString &sender,
-                       const QString &message);
 };
 
 #endif // MAINWINDOW_H

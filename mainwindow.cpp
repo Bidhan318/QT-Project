@@ -91,6 +91,7 @@ MainWindow::MainWindow(QString username, QWidget *parent)
 
     // Connect to server
     connectToServer();
+    loadChatHistory(); // Load old messages into each tab
 }
 
 MainWindow::~MainWindow()
@@ -180,7 +181,7 @@ void MainWindow::sendMessage()
         //show in all tab
         if(chatTabs.contains("All"))
         {
-            appendMessage(chatTabs["All"], LoggedUser, msg);
+            chatTabs["All"]->append("Me: "+ msg);
         }
     }
     else{
@@ -191,7 +192,7 @@ void MainWindow::sendMessage()
 
         if(chatTabs.contains(destination))
         {
-           appendMessage(chatTabs[destination], LoggedUser, msg);
+            chatTabs[destination]->append("Me: " + msg);
         }
     }
     ui->messageEdit->clear();
@@ -270,7 +271,7 @@ void MainWindow::receiveMessage()
             QMessageBox::information(this, "Kicked", "You have been disconnected by the server.");
 
             // Open login window and destroy this window
-            Login_Window *loginwindow = new Login_Window();
+            loginwindow = new Login_Window();
             loginwindow->show();
             deleteLater();  // Completely destroy MainWindow
             return;
@@ -293,7 +294,7 @@ void MainWindow::receiveMessage()
 
             if(chatTabs.contains("All"))
             {
-               appendMessage(chatTabs["All"], sender, message);
+                chatTabs["All"]->append(sender + ": " + message);
                 saveChatHistory();
             }
 
@@ -398,7 +399,6 @@ void MainWindow::receivePresenceAnnouncement()
                 }
                 tcpSocket->connectToHost(QHostAddress(serverIP), TCP_PORT);
                 //connects the clients to server
-                loadChatHistory();   // ✅ reload history now that user is online
             }
             continue;
         }
@@ -566,7 +566,7 @@ void MainWindow::on_logout_clicked()
         tcpSocket->waitForDisconnected(1000);
     }
 
-   Login_Window *loginwindow = new Login_Window();
+    loginwindow = new Login_Window();
     loginwindow->show();
 
     deleteLater();
@@ -589,18 +589,10 @@ void MainWindow::loadChatHistory()
 
     for (QString tabName : root.keys())
     {
-        // Always allow "All"
-        if (tabName != "All")
-        {
-            // If user is not online, skip loading their history
-            if (!activeClients.contains(tabName))
-                continue;
-        }
-
         QJsonArray messages = root[tabName].toArray();
 
-        if (!chatTabs.contains(tabName))
-            addChatTab(tabName);
+        // Ensure the tab exists
+        if (!chatTabs.contains(tabName)) addChatTab(tabName);
 
         QTextEdit *view = chatTabs[tabName];
         if (!view) continue;
@@ -610,11 +602,9 @@ void MainWindow::loadChatHistory()
             QJsonObject msgObj = msgVal.toObject();
             QString from = msgObj["from"].toString();
             QString message = msgObj["message"].toString();
-
-            appendMessage(view, from, message);
+            view->append(from + ": " + message);
         }
     }
-
 }
 
 void MainWindow::saveChatHistory()
@@ -625,7 +615,7 @@ void MainWindow::saveChatHistory()
 
     QJsonObject root;
 
-    for (const QString &tabName : chatTabs.keys())
+    for (QString tabName : chatTabs.keys())
     {
         QTextEdit *view = chatTabs[tabName];
         if (!view) continue;
@@ -654,26 +644,4 @@ void MainWindow::saveChatHistory()
     QJsonDocument doc(root);
     file.write(doc.toJson());
     file.close();
-}
-
-void MainWindow::appendMessage(QTextEdit *view,
-                              const QString &sender,
-                              const QString &message)
-{
-    if (!view) return;
-
-    QTextCursor cursor = view->textCursor();
-    cursor.movePosition(QTextCursor::End);
-
-    QTextBlockFormat format;
-
-    if (sender == LoggedUser)
-        format.setAlignment(Qt::AlignRight);
-    else
-        format.setAlignment(Qt::AlignLeft);
-
-    cursor.insertBlock(format);
-    cursor.insertText(sender + ": " + message);
-
-    view->setTextCursor(cursor);
 }

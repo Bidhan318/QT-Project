@@ -1,5 +1,6 @@
 C:/Users/ACER/Downloads/QT-Project-reverse/QT-Project-reverse/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/QT_project_autogen/EWIEGA46WW/moc_mainwindow.cpp: C:/Users/ACER/Downloads/QT-Project-reverse/QT-Project-reverse/mainwindow.h \
   C:/Users/ACER/Downloads/QT-Project-reverse/QT-Project-reverse/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/QT_project_autogen/moc_predefs.h \
+  C:/Qt/6.10.1/mingw_64/include/QtCore/QDateTime \
   C:/Qt/6.10.1/mingw_64/include/QtCore/QJsonArray \
   C:/Qt/6.10.1/mingw_64/include/QtCore/QJsonDocument \
   C:/Qt/6.10.1/mingw_64/include/QtCore/QJsonObject \
@@ -418,4 +419,5 @@ C:/Users/ACER/Downloads/QT-Project-reverse/QT-Project-reverse/build/Desktop_Qt_6
   C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/sys/types.h \
   C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/time.h \
   C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/vadefs.h \
-  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wchar.h
+  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wchar.h \
+  C:/Users/ACER/Downloads/QT-Project-reverse/QT-Project-reverse/login_window.h
