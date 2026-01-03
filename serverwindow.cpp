@@ -201,7 +201,7 @@ void ServerWindow::onClientDataReceived() //this routes the msg from one client 
             }
 
             //forward msg to reciever
-            QString pvtmsg = "PRIVATE:" + sender + ":" + text + "\n";
+
             for(auto it = clientSockets.begin(); it != clientSockets.end() ; ++it)
             {
                 if(it.value() == recipient)
@@ -209,6 +209,7 @@ void ServerWindow::onClientDataReceived() //this routes the msg from one client 
                     QTcpSocket *recipientsocket = it.key();
                     if(recipientsocket->state() == QAbstractSocket::ConnectedState)
                     {
+                         QString pvtmsg = "PRIVATE:" + sender + ":" + text + "\n";
                         recipientsocket->write(pvtmsg.toUtf8());
                         recipientsocket->flush();
                     }

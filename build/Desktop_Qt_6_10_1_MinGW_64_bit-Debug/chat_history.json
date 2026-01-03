@@ -1,28 +1,26 @@
 {
     "All": [
         {
-            "from": "Me",
+            "from": "user123",
             "message": "hi",
-            "timestamp": "03:01 PM"
-        },
-        {
-            "from": "Me",
-            "message": "k xa",
-            "timestamp": "03:01 PM"
-        },
-        {
-            "from": "rasik",
-            "message": "thik xa",
-            "timestamp": "03:01 PM"
+            "timestamp": "04:20 PM"
         },
         {
             "from": "rasik",
             "message": "hello",
-            "timestamp": "03:02 PM"
+            "timestamp": "04:21 PM"
         }
     ],
     "rasik": [
-    ],
-    "user123": [
+        {
+            "from": "user123",
+            "message": "hello",
+            "timestamp": "04:21 PM"
+        },
+        {
+            "from": "rasik",
+            "message": "hi",
+            "timestamp": "04:21 PM"
+        }
     ]
 }

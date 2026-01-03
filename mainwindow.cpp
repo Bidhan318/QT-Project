@@ -455,7 +455,9 @@ void MainWindow::receivePresenceAnnouncement()
                         ui->activelist->addItem(announcedUser);
                     }
                     addChatTab(announcedUser);
+                    announcePresence();
                 }
+
             }
             continue;
         }
@@ -622,11 +624,19 @@ void MainWindow::loadChatHistory()
 
     for (QString tabName : root.keys())
     {
+        if (tabName.toLower() == LoggedUser.toLower()) continue;
+
         QJsonArray messages = root[tabName].toArray();
-
         // Ensure the tab exists
-        if (!chatTabs.contains(tabName)) addChatTab(tabName);
-
+        if (tabName != "All" && !chatTabs.contains(tabName))
+        {
+            addChatTab(tabName);
+            // Also add to active list
+            if (ui->activelist)
+            {
+                ui->activelist->addItem(tabName);
+            }
+        }
         QTextEdit *view = chatTabs[tabName];
         if (!view) continue;
 
@@ -669,7 +679,9 @@ void MainWindow::saveChatHistory()
 
         for (const QString &line : lines)
         {
-            // Parse: "[02:30 PM] username: message"
+            if (line.isEmpty()) continue;  // Skip empty lines
+
+            //  "[02:30 PM] username: message"
             int timestampEnd = line.indexOf("]");
             if (timestampEnd == -1 || !line.startsWith("[")) continue;
 
@@ -680,6 +692,8 @@ void MainWindow::saveChatHistory()
             if (sep == -1) continue;
 
             QString from = rest.left(sep).trimmed();
+            if (from == "Me") from = LoggedUser;
+
             QString message = rest.mid(sep + 1).trimmed();
 
             QJsonObject msgObj;
