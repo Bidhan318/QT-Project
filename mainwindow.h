@@ -42,6 +42,7 @@ private slots:
     void onActivelistChanged(const QString &username);
     void on_logout_clicked();
 
+
 private:
     // UI
     Ui::MainWindow *ui;
@@ -72,6 +73,7 @@ private:
     void loadChatHistory();
     void saveChatHistory();
     void appendAlignedMessage(QTextEdit *view, const QString &text, Qt::Alignment alignment);
+    void clearCurrentChatHistory();
 
 
 };

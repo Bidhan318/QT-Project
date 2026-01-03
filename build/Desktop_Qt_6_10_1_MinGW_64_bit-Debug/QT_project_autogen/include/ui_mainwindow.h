@@ -34,6 +34,7 @@ public:
     QHBoxLayout *horizontalLayout_2;
     QLabel *label_4;
     QSpacerItem *horizontalSpacer;
+    QPushButton *clearChatBtn_;
     QPushButton *logout;
     QTabWidget *chatTabs;
     QHBoxLayout *horizontalLayout;
@@ -67,6 +68,11 @@ public:
         horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
 
         horizontalLayout_2->addItem(horizontalSpacer);
+
+        clearChatBtn_ = new QPushButton(centralwidget);
+        clearChatBtn_->setObjectName("clearChatBtn_");
+
+        horizontalLayout_2->addWidget(clearChatBtn_);
 
         logout = new QPushButton(centralwidget);
         logout->setObjectName("logout");
@@ -135,6 +141,7 @@ public:
     {
         MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "NovaChat", nullptr));
         label_4->setText(QString());
+        clearChatBtn_->setText(QCoreApplication::translate("MainWindow", "ClearChat", nullptr));
         logout->setText(QCoreApplication::translate("MainWindow", "Logout", nullptr));
         label->setText(QCoreApplication::translate("MainWindow", "To:", nullptr));
         label_2->setText(QCoreApplication::translate("MainWindow", "Message:", nullptr));

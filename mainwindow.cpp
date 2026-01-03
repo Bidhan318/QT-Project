@@ -18,6 +18,7 @@
 #include <QCoreApplication>
 #include <QTextCursor>
 #include <QTextBlockFormat>
+#include <QDateTime>
 
 
 MainWindow::MainWindow(QString username, QWidget *parent)
@@ -95,6 +96,9 @@ MainWindow::MainWindow(QString username, QWidget *parent)
     // Connect to server
     connectToServer();
     loadChatHistory(); // Load old messages into each tab
+    connect(ui->clearChatBtn_, &QPushButton::clicked,
+            this, &MainWindow::clearCurrentChatHistory);
+
 }
 
 MainWindow::~MainWindow()
@@ -710,4 +714,13 @@ void MainWindow::appendAlignedMessage(QTextEdit *view,
 
     view->setTextCursor(cursor);
     view->ensureCursorVisible();
+}
+
+void MainWindow::clearCurrentChatHistory()
+{
+    QTextEdit *view = getCurrentChatView();
+    if (!view) return;
+
+    view->clear();      // Clears UI
+    saveChatHistory();  // Updates JSON file
 }
