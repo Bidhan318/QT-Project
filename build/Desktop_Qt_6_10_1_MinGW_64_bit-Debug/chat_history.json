@@ -44,6 +44,26 @@
             "from": "user123",
             "message": "hello",
             "timestamp": "02:20 PM"
+        },
+        {
+            "from": "Me",
+            "message": "hi",
+            "timestamp": "02:39 PM"
+        },
+        {
+            "from": "Me",
+            "message": "hello",
+            "timestamp": "02:39 PM"
+        },
+        {
+            "from": "Me",
+            "message": "hi",
+            "timestamp": "02:39 PM"
+        },
+        {
+            "from": "rasik",
+            "message": "hello",
+            "timestamp": "02:40 PM"
         }
     ],
     "rasik": [

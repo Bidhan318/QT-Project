@@ -71,6 +71,8 @@ private:
 
     void loadChatHistory();
     void saveChatHistory();
+    void appendAlignedMessage(QTextEdit *view, const QString &text, Qt::Alignment alignment);
+
 
 };
 

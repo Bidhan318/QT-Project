@@ -16,6 +16,9 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QCoreApplication>
+#include <QTextCursor>
+#include <QTextBlockFormat>
+
 
 MainWindow::MainWindow(QString username, QWidget *parent)
     : QMainWindow(parent)
@@ -181,7 +184,12 @@ void MainWindow::sendMessage()
         //show in all tab
         if(chatTabs.contains("All"))
         {
-            chatTabs["All"]->append("[" + timestamp + "] Me: "+ msg);
+            appendAlignedMessage(
+                chatTabs["All"],
+                "[" + timestamp + "] Me: " + msg,
+                Qt::AlignRight
+                );
+
         }
     }
     else{
@@ -192,7 +200,12 @@ void MainWindow::sendMessage()
 
         if(chatTabs.contains(destination))
         {
-            chatTabs[destination]->append("[" + timestamp + "] Me: " + msg);
+            appendAlignedMessage(
+                chatTabs[destination],
+                "[" + timestamp + "] Me: " + msg,
+                Qt::AlignRight
+                );
+
         }
     }
     ui->messageEdit->clear();
@@ -295,7 +308,12 @@ void MainWindow::receiveMessage()
 
             if(chatTabs.contains("All"))
             {
-              chatTabs["All"]->append("[" + timestamp + "] " + sender + ": " + message);
+                appendAlignedMessage(
+                    chatTabs["All"],
+                    "[" + timestamp + "] " + sender + ": " + message,
+                    Qt::AlignLeft
+                    );
+
                 saveChatHistory();
             }
 
@@ -329,7 +347,12 @@ void MainWindow::receiveMessage()
                 }
             }
             //display pvt msgs in senders tab
-            chatTabs[sender]->append("[" + timestamp + "] " + sender + ": " + message);  // Added timestamp
+            appendAlignedMessage(
+                chatTabs[sender],
+                "[" + timestamp + "] " + sender + ": " + message,
+                Qt::AlignLeft
+                );
+
             saveChatHistory();
 
             //show noti
@@ -350,7 +373,12 @@ void MainWindow::receiveMessage()
 
             if(chatTabs.contains("All"))
             {
-                chatTabs["All"]->append("[" + timestamp + "] Server: " + message);
+                appendAlignedMessage(
+                    chatTabs["All"],
+                    "[" + timestamp + "] Server: " + message,
+                    Qt::AlignLeft
+                    );
+
                 saveChatHistory();
             }
             if (windowState() & Qt::WindowMinimized || !isActiveWindow())
@@ -604,7 +632,17 @@ void MainWindow::loadChatHistory()
             QString timestamp = msgObj["timestamp"].toString();
             QString from = msgObj["from"].toString();
             QString message = msgObj["message"].toString();
-            view->append("[" + timestamp + "] " + from + ": " + message);
+            Qt::Alignment align =
+                (from == "Me" || from == LoggedUser)
+                    ? Qt::AlignRight
+                    : Qt::AlignLeft;
+
+            appendAlignedMessage(
+                view,
+                "[" + timestamp + "] " + from + ": " + message,
+                align
+                );
+
         }
     }
 }
@@ -654,4 +692,22 @@ void MainWindow::saveChatHistory()
     QJsonDocument doc(root);
     file.write(doc.toJson());
     file.close();
+}
+void MainWindow::appendAlignedMessage(QTextEdit *view,
+                                      const QString &text,
+                                      Qt::Alignment alignment)
+{
+    if (!view) return;
+
+    QTextCursor cursor = view->textCursor();
+    cursor.movePosition(QTextCursor::End);
+
+    QTextBlockFormat blockFormat;
+    blockFormat.setAlignment(alignment);
+
+    cursor.insertBlock(blockFormat);
+    cursor.insertText(text);
+
+    view->setTextCursor(cursor);
+    view->ensureCursorVisible();
 }
