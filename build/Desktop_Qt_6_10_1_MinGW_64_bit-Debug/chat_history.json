@@ -1,25 +1,68 @@
 {
     "All": [
         {
+            "from": "[06",
+            "message": "50 PM] Me: hi",
+            "timestamp": "06:50 PM"
+        },
+        {
+            "from": "[06",
+            "message": "50 PM] rasik: hello",
+            "timestamp": "06:50 PM"
+        },
+        {
             "from": "Me",
-            "message": "hello [11:36 PM 01/01/2026]",
-            "time": "2026-01-01T23:36:56"
+            "message": "hello",
+            "timestamp": "02:18 PM"
+        },
+        {
+            "from": "Me",
+            "message": "hi",
+            "timestamp": "02:19 PM"
+        },
+        {
+            "from": "Me",
+            "message": "g",
+            "timestamp": "02:19 PM"
         },
         {
             "from": "user123",
-            "message": "hi [11:36 PM 01/01/2026]",
-            "time": "2026-01-01T23:36:56"
+            "message": "hello",
+            "timestamp": "02:19 PM"
+        },
+        {
+            "from": "user123",
+            "message": "hya",
+            "timestamp": "02:19 PM"
+        },
+        {
+            "from": "Me",
+            "message": "hello",
+            "timestamp": "02:19 PM"
+        },
+        {
+            "from": "user123",
+            "message": "hello",
+            "timestamp": "02:20 PM"
+        }
+    ],
+    "rasik": [
+        {
+            "from": "[06",
+            "message": "50 PM] Me: k xa",
+            "timestamp": "06:50 PM"
+        },
+        {
+            "from": "[06",
+            "message": "50 PM] rasik: thik xa",
+            "timestamp": "06:50 PM"
         }
     ],
     "user123": [
         {
-            "from": "user123",
-            "message": "'hi",
-            "time": "2026-01-01T23:36:56"
-        }
-    ]
-}
--01T23:36:56"
+            "from": "Me",
+            "message": "hi",
+            "timestamp": "02:20 PM"
         }
     ]
 }

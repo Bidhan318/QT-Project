@@ -170,7 +170,7 @@ void MainWindow::sendMessage()
     }
 
     QString destination = ui->activelist->currentText(); //accesses the text of drop down active list
-
+    QString timestamp = QDateTime::currentDateTime().toString("hh:mm AP");
     if(destination=="All")
     {
         // Send broadcast message to everyone
@@ -181,7 +181,7 @@ void MainWindow::sendMessage()
         //show in all tab
         if(chatTabs.contains("All"))
         {
-            chatTabs["All"]->append("Me: "+ msg);
+            chatTabs["All"]->append("[" + timestamp + "] Me: "+ msg);
         }
     }
     else{
@@ -192,7 +192,7 @@ void MainWindow::sendMessage()
 
         if(chatTabs.contains(destination))
         {
-            chatTabs[destination]->append("Me: " + msg);
+            chatTabs[destination]->append("[" + timestamp + "] Me: " + msg);
         }
     }
     ui->messageEdit->clear();
@@ -207,6 +207,7 @@ void MainWindow::receiveMessage()
 
     //split by newlines in case multiple msgs arrived together
     QStringList messages = allData.split('\n', Qt::SkipEmptyParts);
+    QString timestamp = QDateTime::currentDateTime().toString("hh:mm AP");
 
     for(const QString &msg : messages)
     {
@@ -294,7 +295,7 @@ void MainWindow::receiveMessage()
 
             if(chatTabs.contains("All"))
             {
-                chatTabs["All"]->append(sender + ": " + message);
+              chatTabs["All"]->append("[" + timestamp + "] " + sender + ": " + message);
                 saveChatHistory();
             }
 
@@ -328,7 +329,7 @@ void MainWindow::receiveMessage()
                 }
             }
             //display pvt msgs in senders tab
-            chatTabs[sender]->append(sender + ": " + message);
+            chatTabs[sender]->append("[" + timestamp + "] " + sender + ": " + message);  // Added timestamp
             saveChatHistory();
 
             //show noti
@@ -349,7 +350,7 @@ void MainWindow::receiveMessage()
 
             if(chatTabs.contains("All"))
             {
-                chatTabs["All"]->append("Server: " + message);
+                chatTabs["All"]->append("[" + timestamp + "] Server: " + message);
                 saveChatHistory();
             }
             if (windowState() & Qt::WindowMinimized || !isActiveWindow())
@@ -600,9 +601,10 @@ void MainWindow::loadChatHistory()
         for (const QJsonValue &msgVal : messages)
         {
             QJsonObject msgObj = msgVal.toObject();
+            QString timestamp = msgObj["timestamp"].toString();
             QString from = msgObj["from"].toString();
             QString message = msgObj["message"].toString();
-            view->append(from + ": " + message);
+            view->append("[" + timestamp + "] " + from + ": " + message);
         }
     }
 }
@@ -625,13 +627,21 @@ void MainWindow::saveChatHistory()
 
         for (const QString &line : lines)
         {
-            int sep = line.indexOf(":"); // Split "from: message"
+            // Parse: "[02:30 PM] username: message"
+            int timestampEnd = line.indexOf("]");
+            if (timestampEnd == -1 || !line.startsWith("[")) continue;
+
+            QString timestamp = line.mid(1, timestampEnd - 1).trimmed();
+            QString rest = line.mid(timestampEnd + 1).trimmed();
+
+            int sep = rest.indexOf(":"); // Split "from: message"
             if (sep == -1) continue;
 
-            QString from = line.left(sep).trimmed();
-            QString message = line.mid(sep + 1).trimmed();
+            QString from = rest.left(sep).trimmed();
+            QString message = rest.mid(sep + 1).trimmed();
 
             QJsonObject msgObj;
+            msgObj["timestamp"] = timestamp;
             msgObj["from"] = from;
             msgObj["message"] = message;
 
