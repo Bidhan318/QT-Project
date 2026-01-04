@@ -221,7 +221,7 @@ void MainWindow::sendMessage()
     }
 
     QString destination = ui->activelist->currentText(); //accesses the text of drop down active list
-    QString timestamp = QDateTime::currentDateTime().toString("hh:mm AP");
+    QString timestamp = QDateTime::currentDateTime().toString("hh:mm A");
 
     if(destination=="All")
     {
@@ -267,7 +267,7 @@ void MainWindow::receiveMessage()
 
     //split by newlines in case multiple msgs arrived together
     QStringList messages = allData.split('\n', Qt::SkipEmptyParts);
-    QString timestamp = QDateTime::currentDateTime().toString("hh:mm AP");
+    QString timestamp = QDateTime::currentDateTime().toString("hh:mm A");
 
     for(const QString &msg : messages)
     {
@@ -394,6 +394,7 @@ void MainWindow::receiveMessage()
                 {
                     activeClients.insert(sender,QHostAddress()); //update qmap
                 }
+                 loadChatHistoryForTab(sender);
             }
             //display pvt msgs in senders tab
             appendAlignedMessage(
@@ -960,7 +961,13 @@ void MainWindow::appendAlignedMessage(QTextEdit *view,
     QTextBlockFormat blockFormat;
     blockFormat.setAlignment(alignment);
 
-    cursor.insertBlock(blockFormat);
+    // Only insert new block if not empty
+    if (!view->toPlainText().isEmpty()) {
+        cursor.insertBlock(blockFormat);
+    } else {
+        cursor.setBlockFormat(blockFormat);
+    }
+
     cursor.insertText(text);
 
     view->setTextCursor(cursor);
