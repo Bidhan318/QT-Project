@@ -13,6 +13,14 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QCloseEvent>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QCoreApplication>
+#include <QTextCursor>
+#include <QTextBlockFormat>
+#include <QDateTime>
 
 MainWindow::MainWindow(QString username, QWidget *parent)
     : QMainWindow(parent)
@@ -105,6 +113,11 @@ MainWindow::MainWindow(QString username, QWidget *parent)
     if (ui->cancelFileBtn) {
         ui->cancelFileBtn->setVisible(false);
     }
+
+    loadChatHistoryForTab("All"); // Load old messages into all tab initially
+
+    connect(ui->clearChatBtn_, &QPushButton::clicked,
+            this, &MainWindow::clearCurrentChatHistory);
 }
 
 MainWindow::~MainWindow()
@@ -208,6 +221,7 @@ void MainWindow::sendMessage()
     }
 
     QString destination = ui->activelist->currentText(); //accesses the text of drop down active list
+    QString timestamp = QDateTime::currentDateTime().toString("hh:mm AP");
 
     if(destination=="All")
     {
@@ -219,7 +233,11 @@ void MainWindow::sendMessage()
         //show in all tab
         if(chatTabs.contains("All"))
         {
-            chatTabs["All"]->append("Me: "+ msg);
+            appendAlignedMessage(
+                chatTabs["All"],
+                "[" + timestamp + "] Me: " + msg,
+                Qt::AlignRight
+                );
         }
     }
     else{
@@ -230,10 +248,15 @@ void MainWindow::sendMessage()
 
         if(chatTabs.contains(destination))
         {
-            chatTabs[destination]->append("Me: " + msg);
+            appendAlignedMessage(
+                chatTabs[destination],
+                "[" + timestamp + "] Me: " + msg,
+                Qt::AlignRight
+                );
         }
     }
     ui->messageEdit->clear();
+    saveChatHistory();  // Save after sending
 }
 
 void MainWindow::receiveMessage()
@@ -244,6 +267,7 @@ void MainWindow::receiveMessage()
 
     //split by newlines in case multiple msgs arrived together
     QStringList messages = allData.split('\n', Qt::SkipEmptyParts);
+    QString timestamp = QDateTime::currentDateTime().toString("hh:mm AP");
 
     for(const QString &msg : messages)
     {
@@ -333,7 +357,13 @@ void MainWindow::receiveMessage()
 
             if(chatTabs.contains("All"))
             {
-                chatTabs["All"]->append(sender + ": " + message);
+                appendAlignedMessage(
+                    chatTabs["All"],
+                    "[" + timestamp + "] " + sender + ": " + message,
+                    Qt::AlignLeft
+                    );
+
+                saveChatHistory();
             }
 
             //show noti
@@ -366,7 +396,13 @@ void MainWindow::receiveMessage()
                 }
             }
             //display pvt msgs in senders tab
-            chatTabs[sender]->append(sender + ": " + message);
+            appendAlignedMessage(
+                chatTabs[sender],
+                "[" + timestamp + "] " + sender + ": " + message,
+                Qt::AlignLeft
+                );
+
+            saveChatHistory();
 
             //show noti
             if (windowState() & Qt::WindowMinimized || !isActiveWindow())
@@ -386,7 +422,13 @@ void MainWindow::receiveMessage()
 
             if(chatTabs.contains("All"))
             {
-                chatTabs["All"]->append("Server: " + message);
+                appendAlignedMessage(
+                    chatTabs["All"],
+                    "[" + timestamp + "] Server: " + message,
+                    Qt::AlignLeft
+                    );
+
+                saveChatHistory();
             }
             if (windowState() & Qt::WindowMinimized || !isActiveWindow())
             {
@@ -458,6 +500,8 @@ void MainWindow::receivePresenceAnnouncement()
                         ui->activelist->addItem(announcedUser);
                     }
                     addChatTab(announcedUser);
+
+                    loadChatHistoryForTab(announcedUser);  // Load history when user comes online
                 }
             }
             continue;
@@ -693,7 +737,7 @@ void MainWindow::on_attachFile_clicked()
         icon = "🎵";
     }
 
-     //Update message input placeholder
+    //Update message input placeholder
     QString placeholderText = QString("%1 %2 (%3) - Type caption (optional)")
                                   .arg(icon)
                                   .arg(filename)
@@ -719,6 +763,215 @@ void MainWindow::on_attachFile_clicked()
     }
 }
 
+void MainWindow::loadChatHistory()  //load for all tab
+{
+    QString historyFile = QCoreApplication::applicationDirPath() + "/chat_history.json";
+    QFile file(historyFile);
+    if (!file.exists()) return;  // No history yet
+
+    if (!file.open(QIODevice::ReadOnly)) return;
+
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+    file.close();
+
+    if (!doc.isObject()) return;
+
+    QJsonObject root = doc.object();
+
+    // Get users object
+    if (!root.contains("users")) return;
+    QJsonObject users = root["users"].toObject();
+
+    // Get THIS user's data
+    if (!users.contains(LoggedUser)) return;  // No history for this user
+    QJsonObject userData = users[LoggedUser].toObject();
+
+    //Only load history for tabs that ALREADY EXIST
+    for (QString tabName : userData.keys())
+    {
+        // Only load if tab already exists (user is online or it's "All")
+        if (!chatTabs.contains(tabName)) {
+            continue;  // Skip - don't create tab, user is offline
+        }
+
+        QTextEdit *view = chatTabs.value(tabName);
+        if (!view) continue;
+
+        QJsonArray messages = userData[tabName].toArray();
+
+        for (const QJsonValue &msgVal : messages)
+        {
+            QJsonObject msgObj = msgVal.toObject();
+            QString timestamp = msgObj["timestamp"].toString();
+            QString from = msgObj["from"].toString();
+            QString message = msgObj["message"].toString();
+
+            Qt::Alignment align = (from == LoggedUser) ? Qt::AlignRight : Qt::AlignLeft;
+            QString displayFrom = (from == LoggedUser) ? "Me" : from;
+
+            appendAlignedMessage(
+                view,
+                "[" + timestamp + "] " + displayFrom + ": " + message,
+                align
+                );
+        }
+    }
+}
+
+void MainWindow::saveChatHistory()
+{
+    QString historyFile = QCoreApplication::applicationDirPath() + "/chat_history.json";
+    QFile file(historyFile);
+
+    // Load existing data first
+    QJsonObject root;
+    if (file.exists()) {
+        if (file.open(QIODevice::ReadOnly)) {
+            QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+            if (doc.isObject()) {
+                root = doc.object();
+            }
+            file.close();
+        }
+    }
+
+    // Ensure structure exists
+    if (!root.contains("users")) {
+        root["users"] = QJsonObject();
+    }
+
+    // Get users object
+    QJsonObject users = root["users"].toObject();
+
+    // Get THIS user's data (or create new)
+    QJsonObject userData = users.contains(LoggedUser)
+                               ? users[LoggedUser].toObject()
+                               : QJsonObject();
+
+    for (QString tabName : chatTabs.keys())
+    {
+        QTextEdit *view = chatTabs[tabName];
+        if (!view) continue;
+
+        QJsonArray messages;
+        QStringList lines = view->toPlainText().split("\n");
+
+        for (const QString &line : lines)
+        {
+            if (line.isEmpty()) continue;  // Skip empty lines
+
+            // Skip system messages (lines with ---)
+            if (line.contains("---")) continue;
+
+            //  "[02:30 PM] username: message"
+            if (!line.startsWith("[")) continue;
+
+            int timestampEnd = line.indexOf("]");
+            if (timestampEnd == -1) continue;
+
+            QString timestamp = line.mid(1, timestampEnd - 1).trimmed();
+            QString rest = line.mid(timestampEnd + 1).trimmed();
+
+            int sep = rest.indexOf(":"); // Split "from: message"
+            if (sep == -1) continue;
+
+            QString from = rest.left(sep).trimmed();
+            if (from == "Me") from = LoggedUser;
+
+            QString message = rest.mid(sep + 1).trimmed();
+
+            QJsonObject msgObj;
+            msgObj["timestamp"] = timestamp;
+            msgObj["from"] = from;
+            msgObj["message"] = message;
+
+            messages.append(msgObj);
+        }
+
+        userData[tabName] = messages;  // Save to THIS user's data
+    }
+
+    users[LoggedUser] = userData;  // Update THIS user's section
+    root["users"] = users;
+
+    // Write back to file
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) return;
+    QJsonDocument doc(root);
+    file.write(doc.toJson());
+    file.close();
+}
 
 
+void MainWindow::loadChatHistoryForTab(const QString &tabName) //load for pvt msgs
+{
+    QString historyFile = QCoreApplication::applicationDirPath() + "/chat_history.json";
+    QFile file(historyFile);
+    if (!file.exists()) return;
 
+    if (!file.open(QIODevice::ReadOnly)) return;
+
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+    file.close();
+
+    if (!doc.isObject()) return;
+
+    QJsonObject root = doc.object();
+
+    if (!root.contains("users")) return;
+
+    QJsonObject users = root["users"].toObject();
+    if (!users.contains(LoggedUser)) return;
+
+    QJsonObject userData = users[LoggedUser].toObject();
+    if (!userData.contains(tabName)) return;  // No history for this user
+
+    QTextEdit *view = chatTabs.value(tabName);
+    if (!view) return;
+
+    QJsonArray messages = userData[tabName].toArray();
+
+    for (const QJsonValue &msgVal : messages)
+    {
+        QJsonObject msgObj = msgVal.toObject();
+        QString timestamp = msgObj["timestamp"].toString();
+        QString from = msgObj["from"].toString();
+        QString message = msgObj["message"].toString();
+
+        Qt::Alignment align = (from == LoggedUser) ? Qt::AlignRight : Qt::AlignLeft;
+        QString displayFrom = (from == LoggedUser) ? "Me" : from;
+
+        appendAlignedMessage(
+            view,
+            "[" + timestamp + "] " + displayFrom + ": " + message,
+            align
+            );
+    }
+}
+
+void MainWindow::appendAlignedMessage(QTextEdit *view,
+                                      const QString &text,
+                                      Qt::Alignment alignment)
+{
+    if (!view) return;
+
+    QTextCursor cursor = view->textCursor();
+    cursor.movePosition(QTextCursor::End);
+
+    QTextBlockFormat blockFormat;
+    blockFormat.setAlignment(alignment);
+
+    cursor.insertBlock(blockFormat);
+    cursor.insertText(text);
+
+    view->setTextCursor(cursor);
+    view->ensureCursorVisible();
+}
+
+void MainWindow::clearCurrentChatHistory()
+{
+    QTextEdit *view = getCurrentChatView();
+    if (!view) return;
+
+    view->clear();      // Clears UI
+    saveChatHistory();  // Updates JSON file
+}

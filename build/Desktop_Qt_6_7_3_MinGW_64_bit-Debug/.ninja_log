@@ -1,99 +1,50 @@
 # ninja log v7
-51	228	7887240974185406	QT_project_autogen/timestamp	e33b0126abb3bb4d
-51	228	7887240974185406	QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-51	228	7887240974185406	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/timestamp	e33b0126abb3bb4d
-51	228	7887240974185406	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
+113	318	7892219981312796	QT_project_autogen/timestamp	e33b0126abb3bb4d
+113	318	7892219981312796	QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
+113	318	7892219981312796	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/timestamp	e33b0126abb3bb4d
+113	318	7892219981312796	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
 738	871	7880929745920297	QT_project_autogen/EWIEGA46WW/qrc_resources.cpp	d055062082760b8c
 738	871	7880929745920297	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/EWIEGA46WW/qrc_resources.cpp	d055062082760b8c
 901	1225	7880929746308939	CMakeFiles/QT_project.dir/QT_project_autogen/EWIEGA46WW/qrc_resources.cpp.obj	bcdad4597f20d781
 875	2241	7880929746052043	CMakeFiles/QT_project.dir/main.cpp.obj	2927039c3085971b
-603	2801	7885459963932072	CMakeFiles/QT_project.dir/QT_project_autogen/mocs_compilation.cpp.obj	6b25481963a319a8
-228	2756	7887240975958330	CMakeFiles/QT_project.dir/login_window.cpp.obj	749405a5a178c14f
-232	3395	7887240975991035	CMakeFiles/QT_project.dir/mainwindow.cpp.obj	ba6443b704f6c394
-236	3310	7887240976034767	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	b91f723cf674150a
-3396	4545	7887241007624612	QT_project.exe	f2170a90fd3b0331
-139	1150	7888117136201016	QT_project_autogen/timestamp	e33b0126abb3bb4d
-139	1150	7888117136201016	QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-139	1150	7888117136201016	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/timestamp	e33b0126abb3bb4d
-139	1150	7888117136201016	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-1151	6209	7888117136984827	CMakeFiles/QT_project.dir/QT_project_autogen/mocs_compilation.cpp.obj	6b25481963a319a8
-1155	6219	7888117137034815	CMakeFiles/QT_project.dir/login_window.cpp.obj	749405a5a178c14f
-1164	6352	7888117137126664	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	b91f723cf674150a
-1160	6376	7888117137085682	CMakeFiles/QT_project.dir/mainwindow.cpp.obj	ba6443b704f6c394
-6377	10610	7888117189255705	QT_project.exe	f2170a90fd3b0331
-52	588	7888121157252693	QT_project_autogen/timestamp	e33b0126abb3bb4d
-52	588	7888121157252693	QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-52	588	7888121157252693	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/timestamp	e33b0126abb3bb4d
-52	588	7888121157252693	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-589	2826	7888121158044775	CMakeFiles/QT_project.dir/QT_project_autogen/mocs_compilation.cpp.obj	6b25481963a319a8
-595	3510	7888121158109835	CMakeFiles/QT_project.dir/login_window.cpp.obj	749405a5a178c14f
-606	3984	7888121158220144	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	b91f723cf674150a
-600	4473	7888121158164051	CMakeFiles/QT_project.dir/mainwindow.cpp.obj	ba6443b704f6c394
-4473	5639	7888121196898257	QT_project.exe	f2170a90fd3b0331
-52	229	7888122859890183	QT_project_autogen/timestamp	e33b0126abb3bb4d
-52	229	7888122859890183	QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-52	229	7888122859890183	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/timestamp	e33b0126abb3bb4d
-52	229	7888122859890183	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-230	2860	7888122861654515	CMakeFiles/QT_project.dir/login_window.cpp.obj	749405a5a178c14f
-237	3345	7888122861736940	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	b91f723cf674150a
-233	3830	7888122861693961	CMakeFiles/QT_project.dir/mainwindow.cpp.obj	ba6443b704f6c394
-3830	4907	7888122897666282	QT_project.exe	f2170a90fd3b0331
-53	250	7888123709959200	QT_project_autogen/timestamp	e33b0126abb3bb4d
-53	250	7888123709959200	QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-53	250	7888123709959200	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/timestamp	e33b0126abb3bb4d
-53	250	7888123709959200	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-250	2728	7888123711929289	CMakeFiles/QT_project.dir/login_window.cpp.obj	749405a5a178c14f
-259	3231	7888123712020680	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	b91f723cf674150a
-255	3751	7888123711980542	CMakeFiles/QT_project.dir/mainwindow.cpp.obj	ba6443b704f6c394
-3752	4824	7888123746952079	QT_project.exe	f2170a90fd3b0331
-113	340	7888697703552652	QT_project_autogen/timestamp	e33b0126abb3bb4d
-113	340	7888697703552652	QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-113	340	7888697703552652	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/timestamp	e33b0126abb3bb4d
-113	340	7888697703552652	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-340	5760	7888697705840832	CMakeFiles/QT_project.dir/login_window.cpp.obj	749405a5a178c14f
-408	5851	7888697706501682	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	b91f723cf674150a
-404	5866	7888697706471697	CMakeFiles/QT_project.dir/mainwindow.cpp.obj	ba6443b704f6c394
-5866	8346	7888697761100381	QT_project.exe	f2170a90fd3b0331
-51	261	7888705312212284	QT_project_autogen/timestamp	e33b0126abb3bb4d
-51	261	7888705312212284	QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-51	261	7888705312212284	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/timestamp	e33b0126abb3bb4d
-51	261	7888705312212284	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-261	2876	7888705314313229	CMakeFiles/QT_project.dir/login_window.cpp.obj	749405a5a178c14f
-269	3354	7888705314393371	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	b91f723cf674150a
-265	3803	7888705314353208	CMakeFiles/QT_project.dir/mainwindow.cpp.obj	ba6443b704f6c394
-60	1156	7888705448726717	QT_project.exe	f2170a90fd3b0331
-28	203	7888710796647221	QT_project_autogen/timestamp	e33b0126abb3bb4d
-28	203	7888710796647221	QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-28	203	7888710796647221	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/timestamp	e33b0126abb3bb4d
-28	203	7888710796647221	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-204	2612	7888710798401544	CMakeFiles/QT_project.dir/login_window.cpp.obj	749405a5a178c14f
-212	3082	7888710798481473	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	b91f723cf674150a
-208	3504	7888710798441540	CMakeFiles/QT_project.dir/mainwindow.cpp.obj	ba6443b704f6c394
-53	1150	7888710901115534	QT_project.exe	f2170a90fd3b0331
-32	1027	7888719289392675	QT_project_autogen/timestamp	e33b0126abb3bb4d
-32	1027	7888719289392675	QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-32	1027	7888719289392675	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/timestamp	e33b0126abb3bb4d
-32	1027	7888719289392675	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-1028	3291	7888719290158670	CMakeFiles/QT_project.dir/QT_project_autogen/mocs_compilation.cpp.obj	6b25481963a319a8
-1033	3770	7888719290212922	CMakeFiles/QT_project.dir/login_window.cpp.obj	749405a5a178c14f
-1042	4337	7888719290297011	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	b91f723cf674150a
-1037	4847	7888719290256316	CMakeFiles/QT_project.dir/mainwindow.cpp.obj	ba6443b704f6c394
-4847	5900	7888719328356972	QT_project.exe	f2170a90fd3b0331
-44	609	7888722759372674	QT_project_autogen/timestamp	e33b0126abb3bb4d
-44	609	7888722759372674	QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-44	609	7888722759372674	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/timestamp	e33b0126abb3bb4d
-44	609	7888722759372674	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-610	2934	7888722760164879	CMakeFiles/QT_project.dir/QT_project_autogen/mocs_compilation.cpp.obj	6b25481963a319a8
-615	3491	7888722760219496	CMakeFiles/QT_project.dir/login_window.cpp.obj	749405a5a178c14f
-625	3953	7888722760318615	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	b91f723cf674150a
-621	4548	7888722760264366	CMakeFiles/QT_project.dir/mainwindow.cpp.obj	ba6443b704f6c394
-4549	5677	7888722799547578	QT_project.exe	f2170a90fd3b0331
-113	1175	7889738517149591	QT_project_autogen/timestamp	e33b0126abb3bb4d
-113	1175	7889738517149591	QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
-113	1175	7889738517149591	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/timestamp	e33b0126abb3bb4d
-113	1175	7889738517149591	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
 1176	3691	7889738517779680	CMakeFiles/QT_project.dir/QT_project_autogen/mocs_compilation.cpp.obj	6b25481963a319a8
-1179	3702	7889738517809616	CMakeFiles/QT_project.dir/login_window.cpp.obj	749405a5a178c14f
-1185	3778	7889738517869586	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	b91f723cf674150a
-1182	4081	7889738517839615	CMakeFiles/QT_project.dir/mainwindow.cpp.obj	ba6443b704f6c394
-4081	6726	7889738546831355	QT_project.exe	f2170a90fd3b0331
+318	3919	7892219983362760	CMakeFiles/QT_project.dir/login_window.cpp.obj	749405a5a178c14f
+321	3993	7892219983392765	CMakeFiles/QT_project.dir/mainwindow.cpp.obj	ba6443b704f6c394
+324	3991	7892219983422763	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	b91f723cf674150a
+3993	6260	7892220020115481	QT_project.exe	f2170a90fd3b0331
+120	2151	7892231045934462	QT_project_autogen/timestamp	e33b0126abb3bb4d
+120	2151	7892231045934462	QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
+120	2151	7892231045934462	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/timestamp	e33b0126abb3bb4d
+120	2151	7892231045934462	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
+2151	4748	7892231046664471	CMakeFiles/QT_project.dir/QT_project_autogen/mocs_compilation.cpp.obj	6b25481963a319a8
+2212	5416	7892231047274493	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	b91f723cf674150a
+2200	5628	7892231047154492	CMakeFiles/QT_project.dir/login_window.cpp.obj	749405a5a178c14f
+64	312	7892231912683275	QT_project_autogen/timestamp	e33b0126abb3bb4d
+64	312	7892231912683275	QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
+64	312	7892231912683275	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/timestamp	e33b0126abb3bb4d
+64	312	7892231912683275	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
+313	2061	7892231915169529	CMakeFiles/QT_project.dir/login_window.cpp.obj	749405a5a178c14f
+323	2414	7892231915278510	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	b91f723cf674150a
+67	319	7892232973662461	QT_project_autogen/timestamp	e33b0126abb3bb4d
+67	319	7892232973662461	QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
+67	319	7892232973662461	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/timestamp	e33b0126abb3bb4d
+67	319	7892232973662461	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
+320	2116	7892232976181174	CMakeFiles/QT_project.dir/login_window.cpp.obj	749405a5a178c14f
+335	2518	7892232976341214	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	b91f723cf674150a
+53	222	7892233265662769	QT_project_autogen/timestamp	e33b0126abb3bb4d
+53	222	7892233265662769	QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
+53	222	7892233265662769	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/timestamp	e33b0126abb3bb4d
+53	222	7892233265662769	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
+222	2013	7892233267352769	CMakeFiles/QT_project.dir/login_window.cpp.obj	749405a5a178c14f
+230	2368	7892233267432780	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	b91f723cf674150a
+226	2901	7892233267392797	CMakeFiles/QT_project.dir/mainwindow.cpp.obj	ba6443b704f6c394
+2901	5049	7892233294142785	QT_project.exe	f2170a90fd3b0331
+8	411	7892254076957345	QT_project_autogen/timestamp	e33b0126abb3bb4d
+8	411	7892254076957345	QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
+8	411	7892254076957345	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/timestamp	e33b0126abb3bb4d
+8	411	7892254076957345	E:/QT projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/mocs_compilation.cpp	e33b0126abb3bb4d
+411	1846	7892254077677107	CMakeFiles/QT_project.dir/QT_project_autogen/mocs_compilation.cpp.obj	6b25481963a319a8
+416	2221	7892254077727110	CMakeFiles/QT_project.dir/login_window.cpp.obj	749405a5a178c14f
+427	2562	7892254077837172	CMakeFiles/QT_project.dir/serverwindow.cpp.obj	b91f723cf674150a
+421	3095	7892254077777144	CMakeFiles/QT_project.dir/mainwindow.cpp.obj	ba6443b704f6c394
+3095	3939	7892254104510029	QT_project.exe	f2170a90fd3b0331

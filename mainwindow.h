@@ -39,6 +39,12 @@ private slots:
     void announceDeparture();
     void on_logout_clicked();
     void closeEvent(QCloseEvent *event) override; //for when window directly closed so the activelist updates
+
+    void loadChatHistory();
+    void saveChatHistory();
+    void loadChatHistoryForTab(const QString& tabname);
+    void appendAlignedMessage(QTextEdit *view, const QString &text, Qt::Alignment alignment);
+    void clearCurrentChatHistory();
     //file send
     void on_attachFile_clicked();
 

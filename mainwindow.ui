@@ -50,6 +50,13 @@
        </spacer>
       </item>
       <item>
+       <widget class="QPushButton" name="clearChatBtn_">
+        <property name="text">
+         <string>Clear Chat</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="logout">
         <property name="styleSheet">
          <string notr="true">background-color: #EF5350;</string>
