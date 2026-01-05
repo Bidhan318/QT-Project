@@ -49,6 +49,8 @@ private slots:
     void on_attachFile_clicked();
 
 
+    void setemojiBtn();
+
 private:
     Ui::MainWindow *ui;
     Login_Window *loginwindow;
@@ -73,6 +75,8 @@ private:
 
     QTimer* announcementTimer ;
     bool isLoggingOut;
+
+    QMenu *emojiMenu;
 
     //file send
     QString pendingFilePath;

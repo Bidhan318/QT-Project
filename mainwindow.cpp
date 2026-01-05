@@ -30,6 +30,8 @@ MainWindow::MainWindow(QString username, QWidget *parent)
 {
     ui->setupUi(this);
 
+    setemojiBtn(); //configure the emojis
+
     //----UDP for presence detction and TCP for msg passing----------------
 
     // UDP socket setup for presence detection
@@ -982,3 +984,158 @@ void MainWindow::clearCurrentChatHistory()
     view->clear();      // Clears UI
     saveChatHistory();  // Updates JSON file
 }
+
+void MainWindow::setemojiBtn()
+{
+    emojiMenu = new QMenu(this);
+    //smileys
+
+    QMenu *smileyMenu = emojiMenu->addMenu("😊 Smileys");
+    QStringList smileys = {
+        "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣",
+        "😊", "😇", "🙂", "😉", "😌", "😍", "🥰", "😘",
+        "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪",
+        "🤨", "🧐", "🤓", "😎", "🥳", "😏", "😒", "😞"
+    };
+    for (const QString &emoji : smileys)
+    {
+        QAction *action = smileyMenu->addAction(emoji);
+        connect (action , &QAction::triggered , this , [this, emoji](){
+            ui->messageEdit->insert(emoji);
+            ui->messageEdit->setFocus();
+        });
+    }
+
+
+    // Gestures & Hands
+    QMenu *gesturesMenu = emojiMenu->addMenu("👍 Gestures");
+    QStringList gestures = {
+            "👍", "👎", "👌", "✌️", "🤞", "🤟", "🤘", "🤙",
+            "👈", "👉", "👆", "👇", "☝️", "✋", "🤚", "🖐️",
+            "🖖", "👋", "🤝", "👏", "🙌", "👐", "🤲", "🙏"
+        };
+
+    for (const QString &emoji : gestures) {
+            QAction *action = gesturesMenu->addAction(emoji);
+            connect(action, &QAction::triggered, this, [this, emoji]() {
+                ui->messageEdit->insert(emoji);
+                ui->messageEdit->setFocus();
+            });
+        }
+
+        // Hearts & Love
+    QMenu *heartsMenu = emojiMenu->addMenu("❤️ Hearts");
+    QStringList hearts = {
+            "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍",
+            "🤎", "💔", "❣️", "💕", "💞", "💓", "💗", "💖",
+            "💘", "💝", "💟"
+        };
+
+    for (const QString &emoji : hearts) {
+            QAction *action = heartsMenu->addAction(emoji);
+            connect(action, &QAction::triggered, this, [this, emoji]() {
+                ui->messageEdit->insert(emoji);
+                ui->messageEdit->setFocus();
+            });
+        }
+
+        // Symbols & Objects
+    QMenu *symbolsMenu = emojiMenu->addMenu("✨ Symbols");
+    QStringList symbols = {
+            "⭐", "✨", "💫", "💥", "💢", "💦", "💨", "🔥",
+            "💯", "✔️", "✅", "❌", "❎", "⚠️", "🚫", "💤",
+            "💬", "💭", "🗨️", "🗯️", "💡", "🔔", "🔕", "📢"
+        };
+
+    for (const QString &emoji : symbols) {
+            QAction *action = symbolsMenu->addAction(emoji);
+            connect(action, &QAction::triggered, this, [this, emoji]() {
+                ui->messageEdit->insert(emoji);
+                ui->messageEdit->setFocus();
+            });
+        }
+
+        // Tech & Objects
+    QMenu *objectsMenu = emojiMenu->addMenu("📱 Tech");
+    QStringList objects = {
+            "📱", "💻", "⌨️", "🖥️", "🖨️", "🖱️", "💾", "💿",
+            "📀", "📷", "📹", "🎥", "📞", "☎️", "📟", "📠",
+            "📺", "📻", "🎙️", "🎚️", "🎛️", "⏰", "⏱️", "⏲️"
+        };
+
+    for (const QString &emoji : objects) {
+            QAction *action = objectsMenu->addAction(emoji);
+            connect(action, &QAction::triggered, this, [this, emoji]() {
+                ui->messageEdit->insert(emoji);
+                ui->messageEdit->setFocus();
+            });
+        }
+
+        // Food & Drink
+    QMenu *foodMenu = emojiMenu->addMenu("🍕 Food");
+    QStringList food = {
+            "🍕", "🍔", "🍟", "🌭", "🍿", "🧂", "🥓", "🥚",
+            "🍳", "🧇", "🥞", "🧈", "🍞", "🥐", "🥨", "🥯",
+            "🥖", "🧀", "🥗", "🥙", "🥪", "🌮", "🌯", "🫔"
+        };
+
+    for (const QString &emoji : food) {
+            QAction *action = foodMenu->addAction(emoji);
+            connect(action, &QAction::triggered, this, [this, emoji]() {
+                ui->messageEdit->insert(emoji);
+                ui->messageEdit->setFocus();
+            });
+        }
+
+        // Animals & Nature
+    QMenu *animalsMenu = emojiMenu->addMenu("🐶 Animals");
+    QStringList animals = {
+            "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼",
+            "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🐔",
+            "🐧", "🐦", "🐤", "🦆", "🦅", "🦉", "🦇", "🐺"
+        };
+
+    for (const QString &emoji : animals) {
+            QAction *action = animalsMenu->addAction(emoji);
+            connect(action, &QAction::triggered, this, [this, emoji]() {
+                ui->messageEdit->insert(emoji);
+                ui->messageEdit->setFocus();
+            });
+        }
+
+        // Activities & Sports
+    QMenu *activitiesMenu = emojiMenu->addMenu("⚽ Activities");
+    QStringList activities = {
+            "⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉",
+            "🥏", "🎱", "🏓", "🏸", "🏒", "🏑", "🥍", "🏏",
+            "🎯", "🎮", "🎲", "🎰", "🎳", "🎪", "🎨", "🎬"
+        };
+
+    for (const QString &emoji : activities) {
+            QAction *action = activitiesMenu->addAction(emoji);
+            connect(action, &QAction::triggered, this, [this, emoji]() {
+                ui->messageEdit->insert(emoji);
+                ui->messageEdit->setFocus();
+            });
+        }
+
+        // Quick access separator
+    emojiMenu->addSeparator();
+
+        // Frequently used (flat list at bottom for quick access)
+    QStringList favorites = {
+            "😊", "😂", "❤️", "👍", "👋", "🎉", "🔥", "✨"
+        };
+
+    for (const QString &emoji : favorites) {
+            QAction *action = emojiMenu->addAction(emoji + " ");
+            connect(action, &QAction::triggered, this, [this, emoji]() {
+                ui->messageEdit->insert(emoji);
+                ui->messageEdit->setFocus();
+            });
+        }
+
+        // Set menu to button
+    ui->emojiBtn->setMenu(emojiMenu); //this automakes sure that it works on button press
+}
+

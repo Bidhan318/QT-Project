@@ -4177,3 +4177,181 @@ events:
         - "C:/msys64/ucrt64"
         - "C:/Program Files (x86)/QT_project"
 ...
+
+---
+events:
+  -
+    kind: "find_package-v1"
+    backtrace:
+      - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6/FindWrapVulkanHeaders.cmake:13 (find_package)"
+      - "build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/.qtc/package-manager/maintenance_tool_provider.cmake:340 (find_package)"
+      - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6/QtPublicDependencyHelpers.cmake:34 (find_package)"
+      - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6Gui/Qt6GuiDependencies.cmake:33 (_qt_internal_find_third_party_dependencies)"
+      - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6Gui/Qt6GuiConfig.cmake:43 (include)"
+      - "build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/.qtc/package-manager/maintenance_tool_provider.cmake:333 (find_package)"
+      - "C:/msys64/ucrt64/share/cmake/Modules/CMakeFindDependencyMacro.cmake:78 (find_package)"
+      - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6/QtPublicDependencyHelpers.cmake:111 (find_dependency)"
+      - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6Widgets/Qt6WidgetsDependencies.cmake:42 (_qt_internal_find_qt_dependencies)"
+      - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6Widgets/Qt6WidgetsConfig.cmake:43 (include)"
+      - "build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/.qtc/package-manager/maintenance_tool_provider.cmake:315 (find_package)"
+      - "CMakeLists.txt:14 (find_package)"
+    name: "Vulkan"
+    version_request:
+      exact: false
+    settings:
+      required: "optional"
+      quiet: true
+      global: false
+      policy_scope: true
+      bypass_provider: false
+      path_suffixes:
+        - ""
+      paths:
+        CMAKE_FIND_USE_CMAKE_PATH: true
+        CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+        CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+        CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+        CMAKE_FIND_USE_INSTALL_PREFIX: true
+        CMAKE_FIND_USE_PACKAGE_ROOT_PATH: true
+        CMAKE_FIND_USE_CMAKE_PACKAGE_REGISTRY: true
+        CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY: true
+        CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
+    candidates:
+      -
+        path: "dependency_provider::qt_maintenance_tool_dependency"
+        mode: "provider"
+        reason: "not_found"
+      -
+        path: "C:/msys64/ucrt64/share/cmake/Modules/FindVulkan.cmake"
+        mode: "module"
+        reason: "not_found"
+    found: null
+    search_context:
+      CMAKE_PREFIX_PATH:
+        - "D:/Qt/6.7.3/mingw_64"
+      ENV{PATH}:
+        - "D:\\Qt\\Tools\\mingw1120_64\\bin"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\java8path"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\javapath"
+        - "C:\\WINDOWS\\system32"
+        - "C:\\WINDOWS"
+        - "C:\\WINDOWS\\System32\\Wbem"
+        - "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\"
+        - "C:\\WINDOWS\\System32\\OpenSSH\\"
+        - "C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common"
+        - "C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR"
+        - "C:\\Program Files\\Git\\cmd"
+        - "C:\\msys64\\ucrt64\\bin"
+        - "C:\\Program Files\\CMake\\bin"
+        - "C:\\Users\\Acer\\Desktop\\OpenCV\\opencv\\build\\x64\\vc16\\bin"
+        - "C:\\Users\\Acer\\Desktop\\OpenCV\\opencv\\build\\x64\\vc16\\lib"
+        - "D:\\nodejs\\"
+        - "C:\\Program Files (x86)\\Microsoft SQL Server\\160\\Tools\\Binn\\"
+        - "C:\\Program Files\\Microsoft SQL Server\\160\\Tools\\Binn\\"
+        - "C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\170\\Tools\\Binn\\"
+        - "C:\\Program Files\\Microsoft SQL Server\\160\\DTS\\Binn\\"
+        - "C:\\Users\\Acer\\AppData\\Local\\Programs\\Python\\Launcher\\"
+        - "C:\\Users\\Acer\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "C:\\Users\\Acer\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\Acer\\AppData\\Local\\GitHubDesktop\\bin"
+        - "C:\\msys64\\ucrt64\\bin"
+        - "C:\\Users\\Acer\\Desktop\\OpenCV\\opencv\\build\\x64\\vc16\\bin"
+        - "C:\\Users\\Acer\\Desktop\\OpenCV\\opencv\\build\\x64\\vc16\\lib"
+        - "C:\\Users\\Acer\\AppData\\Roaming\\npm"
+      CMAKE_INSTALL_PREFIX: "C:/Program Files (x86)/QT_project"
+      CMAKE_SYSTEM_PREFIX_PATH:
+        - "C:/Program Files"
+        - "C:/Program Files (x86)"
+        - "C:/msys64/ucrt64"
+        - "C:/Program Files (x86)/QT_project"
+      CMAKE_MODULE_PATH:
+        - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6"
+        - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6/3rdparty/extra-cmake-modules/find-modules"
+        - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6/3rdparty/kwin"
+  -
+    kind: "find_package-v1"
+    backtrace:
+      - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6/QtPublicDependencyHelpers.cmake:34 (find_package)"
+      - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6Gui/Qt6GuiDependencies.cmake:33 (_qt_internal_find_third_party_dependencies)"
+      - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6Gui/Qt6GuiConfig.cmake:43 (include)"
+      - "build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/.qtc/package-manager/maintenance_tool_provider.cmake:333 (find_package)"
+      - "C:/msys64/ucrt64/share/cmake/Modules/CMakeFindDependencyMacro.cmake:78 (find_package)"
+      - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6/QtPublicDependencyHelpers.cmake:111 (find_dependency)"
+      - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6Widgets/Qt6WidgetsDependencies.cmake:42 (_qt_internal_find_qt_dependencies)"
+      - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6Widgets/Qt6WidgetsConfig.cmake:43 (include)"
+      - "build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/.qtc/package-manager/maintenance_tool_provider.cmake:315 (find_package)"
+      - "CMakeLists.txt:14 (find_package)"
+    name: "WrapVulkanHeaders"
+    version_request:
+      exact: false
+    settings:
+      required: "optional"
+      quiet: true
+      global: false
+      policy_scope: true
+      bypass_provider: false
+      path_suffixes:
+        - ""
+      paths:
+        CMAKE_FIND_USE_CMAKE_PATH: true
+        CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+        CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+        CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+        CMAKE_FIND_USE_INSTALL_PREFIX: true
+        CMAKE_FIND_USE_PACKAGE_ROOT_PATH: true
+        CMAKE_FIND_USE_CMAKE_PACKAGE_REGISTRY: true
+        CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY: true
+        CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
+    candidates:
+      -
+        path: "dependency_provider::qt_maintenance_tool_dependency"
+        mode: "provider"
+        reason: "not_found"
+      -
+        path: "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6/FindWrapVulkanHeaders.cmake"
+        mode: "module"
+        reason: "not_found"
+    found: null
+    search_context:
+      CMAKE_PREFIX_PATH:
+        - "D:/Qt/6.7.3/mingw_64"
+      ENV{PATH}:
+        - "D:\\Qt\\Tools\\mingw1120_64\\bin"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\java8path"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\javapath"
+        - "C:\\WINDOWS\\system32"
+        - "C:\\WINDOWS"
+        - "C:\\WINDOWS\\System32\\Wbem"
+        - "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\"
+        - "C:\\WINDOWS\\System32\\OpenSSH\\"
+        - "C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common"
+        - "C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR"
+        - "C:\\Program Files\\Git\\cmd"
+        - "C:\\msys64\\ucrt64\\bin"
+        - "C:\\Program Files\\CMake\\bin"
+        - "C:\\Users\\Acer\\Desktop\\OpenCV\\opencv\\build\\x64\\vc16\\bin"
+        - "C:\\Users\\Acer\\Desktop\\OpenCV\\opencv\\build\\x64\\vc16\\lib"
+        - "D:\\nodejs\\"
+        - "C:\\Program Files (x86)\\Microsoft SQL Server\\160\\Tools\\Binn\\"
+        - "C:\\Program Files\\Microsoft SQL Server\\160\\Tools\\Binn\\"
+        - "C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\170\\Tools\\Binn\\"
+        - "C:\\Program Files\\Microsoft SQL Server\\160\\DTS\\Binn\\"
+        - "C:\\Users\\Acer\\AppData\\Local\\Programs\\Python\\Launcher\\"
+        - "C:\\Users\\Acer\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "C:\\Users\\Acer\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\Acer\\AppData\\Local\\GitHubDesktop\\bin"
+        - "C:\\msys64\\ucrt64\\bin"
+        - "C:\\Users\\Acer\\Desktop\\OpenCV\\opencv\\build\\x64\\vc16\\bin"
+        - "C:\\Users\\Acer\\Desktop\\OpenCV\\opencv\\build\\x64\\vc16\\lib"
+        - "C:\\Users\\Acer\\AppData\\Roaming\\npm"
+      CMAKE_INSTALL_PREFIX: "C:/Program Files (x86)/QT_project"
+      CMAKE_SYSTEM_PREFIX_PATH:
+        - "C:/Program Files"
+        - "C:/Program Files (x86)"
+        - "C:/msys64/ucrt64"
+        - "C:/Program Files (x86)/QT_project"
+      CMAKE_MODULE_PATH:
+        - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6"
+        - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6/3rdparty/extra-cmake-modules/find-modules"
+        - "D:/Qt/6.7.3/mingw_64/lib/cmake/Qt6/3rdparty/kwin"
+...

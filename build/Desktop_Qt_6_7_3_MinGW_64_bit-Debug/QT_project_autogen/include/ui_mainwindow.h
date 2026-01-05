@@ -44,6 +44,7 @@ public:
     QPushButton *attachFile;
     QLabel *label_2;
     QLineEdit *messageEdit;
+    QPushButton *emojiBtn;
     QPushButton *sendBtn;
     QHBoxLayout *horizontalLayout_3;
     QPushButton *cancelFileBtn;
@@ -125,6 +126,13 @@ public:
 
         horizontalLayout->addWidget(messageEdit);
 
+        emojiBtn = new QPushButton(centralwidget);
+        emojiBtn->setObjectName("emojiBtn");
+        emojiBtn->setMaximumSize(QSize(40, 16777215));
+        emojiBtn->setIconSize(QSize(40, 40));
+
+        horizontalLayout->addWidget(emojiBtn);
+
         sendBtn = new QPushButton(centralwidget);
         sendBtn->setObjectName("sendBtn");
 
@@ -181,6 +189,7 @@ public:
         attachFile->setText(QCoreApplication::translate("MainWindow", "\360\237\223\216", nullptr));
         label_2->setText(QCoreApplication::translate("MainWindow", "Message:", nullptr));
         messageEdit->setPlaceholderText(QCoreApplication::translate("MainWindow", "Type your message...", nullptr));
+        emojiBtn->setText(QCoreApplication::translate("MainWindow", "\360\237\230\200", nullptr));
         sendBtn->setText(QCoreApplication::translate("MainWindow", "Send", nullptr));
         cancelFileBtn->setText(QCoreApplication::translate("MainWindow", "Cancel", nullptr));
         fileStatusLabel->setText(QCoreApplication::translate("MainWindow", "TextLabel", nullptr));

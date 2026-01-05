@@ -68,7 +68,8 @@ constexpr auto qt_meta_stringdata_CLASSMainWindowENDCLASS = QtMocHelpers::string
     "Qt::Alignment",
     "alignment",
     "clearCurrentChatHistory",
-    "on_attachFile_clicked"
+    "on_attachFile_clicked",
+    "setemojiBtn"
 );
 #else  // !QT_MOC_HAS_STRINGDATA
 #error "qtmochelpers.h not found or too old."
@@ -81,7 +82,7 @@ Q_CONSTINIT static const uint qt_meta_data_CLASSMainWindowENDCLASS[] = {
       12,       // revision
        0,       // classname
        0,    0, // classinfo
-      19,   14, // methods
+      20,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -89,25 +90,26 @@ Q_CONSTINIT static const uint qt_meta_data_CLASSMainWindowENDCLASS[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags, initial metatype offsets
-       1,    0,  128,    2, 0x08,    1 /* Private */,
-       3,    0,  129,    2, 0x08,    2 /* Private */,
-       4,    0,  130,    2, 0x08,    3 /* Private */,
-       5,    0,  131,    2, 0x08,    4 /* Private */,
-       6,    0,  132,    2, 0x08,    5 /* Private */,
-       7,    0,  133,    2, 0x08,    6 /* Private */,
-       8,    1,  134,    2, 0x08,    7 /* Private */,
-      11,    1,  137,    2, 0x08,    9 /* Private */,
-      13,    1,  140,    2, 0x08,   11 /* Private */,
-      15,    0,  143,    2, 0x08,   13 /* Private */,
-      16,    0,  144,    2, 0x08,   14 /* Private */,
-      17,    0,  145,    2, 0x08,   15 /* Private */,
-      18,    1,  146,    2, 0x08,   16 /* Private */,
-      21,    0,  149,    2, 0x08,   18 /* Private */,
-      22,    0,  150,    2, 0x08,   19 /* Private */,
-      23,    1,  151,    2, 0x08,   20 /* Private */,
-      25,    3,  154,    2, 0x08,   22 /* Private */,
-      31,    0,  161,    2, 0x08,   26 /* Private */,
-      32,    0,  162,    2, 0x08,   27 /* Private */,
+       1,    0,  134,    2, 0x08,    1 /* Private */,
+       3,    0,  135,    2, 0x08,    2 /* Private */,
+       4,    0,  136,    2, 0x08,    3 /* Private */,
+       5,    0,  137,    2, 0x08,    4 /* Private */,
+       6,    0,  138,    2, 0x08,    5 /* Private */,
+       7,    0,  139,    2, 0x08,    6 /* Private */,
+       8,    1,  140,    2, 0x08,    7 /* Private */,
+      11,    1,  143,    2, 0x08,    9 /* Private */,
+      13,    1,  146,    2, 0x08,   11 /* Private */,
+      15,    0,  149,    2, 0x08,   13 /* Private */,
+      16,    0,  150,    2, 0x08,   14 /* Private */,
+      17,    0,  151,    2, 0x08,   15 /* Private */,
+      18,    1,  152,    2, 0x08,   16 /* Private */,
+      21,    0,  155,    2, 0x08,   18 /* Private */,
+      22,    0,  156,    2, 0x08,   19 /* Private */,
+      23,    1,  157,    2, 0x08,   20 /* Private */,
+      25,    3,  160,    2, 0x08,   22 /* Private */,
+      31,    0,  167,    2, 0x08,   26 /* Private */,
+      32,    0,  168,    2, 0x08,   27 /* Private */,
+      33,    0,  169,    2, 0x08,   28 /* Private */,
 
  // slots: parameters
     QMetaType::Void,
@@ -127,6 +129,7 @@ Q_CONSTINIT static const uint qt_meta_data_CLASSMainWindowENDCLASS[] = {
     QMetaType::Void,
     QMetaType::Void, QMetaType::QString,   24,
     QMetaType::Void, 0x80000000 | 26, QMetaType::QString, 0x80000000 | 29,   27,   28,   30,
+    QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
 
@@ -187,6 +190,8 @@ Q_CONSTINIT const QMetaObject MainWindow::staticMetaObject = { {
         // method 'clearCurrentChatHistory'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
         // method 'on_attachFile_clicked'
+        QtPrivate::TypeAndForceComplete<void, std::false_type>,
+        // method 'setemojiBtn'
         QtPrivate::TypeAndForceComplete<void, std::false_type>
     >,
     nullptr
@@ -217,6 +222,7 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 16: _t->appendAlignedMessage((*reinterpret_cast< std::add_pointer_t<QTextEdit*>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<QString>>(_a[2])),(*reinterpret_cast< std::add_pointer_t<Qt::Alignment>>(_a[3]))); break;
         case 17: _t->clearCurrentChatHistory(); break;
         case 18: _t->on_attachFile_clicked(); break;
+        case 19: _t->setemojiBtn(); break;
         default: ;
         }
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
@@ -259,13 +265,13 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 19)
+        if (_id < 20)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 19;
+        _id -= 20;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 19)
+        if (_id < 20)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 19;
+        _id -= 20;
     }
     return _id;
 }
