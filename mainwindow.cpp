@@ -45,7 +45,7 @@ MainWindow::MainWindow(QString username, QWidget *parent)
     // Set up periodic presence announcement (every 3 seconds)
     announcementTimer = new QTimer(this);
     connect(announcementTimer, &QTimer::timeout, this, &MainWindow::announcePresence);
-    announcementTimer->start(3000); // Announce every 3 seconds
+    announcementTimer->start(2000); // Announce every 2 seconds
 
     // Send initial announcement immediately
     QTimer::singleShot(500, this, &MainWindow::announcePresence); // Delay 500ms to ensure socket is ready
@@ -581,12 +581,11 @@ void MainWindow::announcePresence()
 {
     // Broadcast presence to all clients so they know we're online
     QString announce = "CLIENT_ANNOUNCE:"+LoggedUser;
-    udpSocket->writeDatagram(announce.toUtf8(),QHostAddress::Broadcast,PORT);
-    //send multiple threads to ensure delivery
-    QThread::msleep(50);
-    udpSocket->writeDatagram(announce.toUtf8(), QHostAddress::Broadcast, PORT);
-    QThread::msleep(50);
-    udpSocket->writeDatagram(announce.toUtf8(), QHostAddress::Broadcast, PORT);
+    for (int i = 0; i < 5; i++) {
+        udpSocket->writeDatagram(announce.toUtf8(), QHostAddress::Broadcast, PORT);
+        QCoreApplication::processEvents();  // Process any incoming packets
+        QThread::msleep(30);  // Shorter delay between sends
+    }
 }
 
 void MainWindow::announceDeparture()

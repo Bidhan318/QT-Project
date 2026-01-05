@@ -33,6 +33,8 @@ ServerWindow::ServerWindow(QString username, QWidget *parent)
 
     // Send initial discovery
     broadcastServerPresence();
+    QTimer::singleShot(200, this, &ServerWindow::broadcastServerPresence);
+    QTimer::singleShot(500, this, &ServerWindow::broadcastServerPresence);
 
     // TCP server setup for messaging
     tcpServer = new QTcpServer(this);
