@@ -27,6 +27,8 @@ MainWindow::MainWindow(QString username, QWidget *parent)
     , ui(new Ui::MainWindow)
     , LoggedUser(username)
     , hasattachedFile(false)
+    , isSendingFile(false)
+    , isLoggingOut(false)
 {
     ui->setupUi(this);
 
@@ -130,6 +132,17 @@ MainWindow::~MainWindow()
     }
     announceDeparture();
 
+    for(auto it = activeDownloads.begin(); it != activeDownloads.end(); ++it)
+    {
+        IncomingFile &incoming = it.value();
+        if(incoming.file)
+        {
+            incoming.file->close();
+            delete incoming.file;
+        }
+    }
+    activeDownloads.clear();
+
     // Notify server of disconnect
     if (tcpSocket->state() == QAbstractSocket::ConnectedState)
     {
@@ -153,6 +166,7 @@ void MainWindow::closeEvent(QCloseEvent *event)  //for when window directly clos
 
     // Notify other clients (UDP)
     announceDeparture();
+    QThread::msleep(200);//give some time for udp packets to leave
 
     // Just disconnect TCP (server will handle cleanup)
     if (tcpSocket && tcpSocket->state() == QAbstractSocket::ConnectedState)
@@ -210,7 +224,8 @@ void MainWindow::onTcpError(QAbstractSocket::SocketError error)
 void MainWindow::sendMessage()
 {
     QString msg = ui->messageEdit->text();
-    if (msg.isEmpty()) return;
+    QString destination = ui->activelist->currentText(); //accesses the text of drop down active list
+    QString timestamp = QDateTime::currentDateTime().toString("hh:mm A");
 
     //check if connected to server
     if(tcpSocket->state() != QAbstractSocket::ConnectedState)
@@ -222,8 +237,25 @@ void MainWindow::sendMessage()
         return;
     }
 
-    QString destination = ui->activelist->currentText(); //accesses the text of drop down active list
-    QString timestamp = QDateTime::currentDateTime().toString("hh:mm A");
+    //  HANDLE FILE SENDING
+    if(hasattachedFile && !pendingFilePath.isEmpty())
+    {
+        if(destination == "All")
+        {
+            QMessageBox::warning(this, "File Transfer",
+                                 "Cannot send files to 'All'. Please select a specific user.");
+            return;
+        }
+
+        sendFile(destination,msg); //msg is the optional caption
+
+        // clear the UI text
+        ui->messageEdit->clear();
+        ui->messageEdit->setPlaceholderText("Type a message...");
+        return;
+    }
+
+    if (msg.isEmpty()) return;
 
     if(destination=="All")
     {
@@ -265,8 +297,136 @@ void MainWindow::receiveMessage()
 {
     //read all available data from tcp socket
     QByteArray data = tcpSocket->readAll();
-    QString allData = QString::fromUtf8(data);
 
+    // DEBUG: Log what we received
+    qDebug() << "Received" << data.size() << "bytes";
+
+    //PRIORITY 1: check if we are recieving a file (already in download mode)
+    if (!activeDownloads.isEmpty())
+    {
+        for(auto it = activeDownloads.begin(); it != activeDownloads.end(); ++it)
+        {
+            QString transferId = it.key();
+            IncomingFile &incoming = it.value();
+
+            // Work with raw bytes - NO QString conversion
+            int endMarkerPos = data.indexOf("FILE_TRANSFER_COMPLETE:");
+
+            if(endMarkerPos != -1)
+            {
+                QByteArray fileData = data.left(endMarkerPos);
+                if(!fileData.isEmpty() && incoming.file)
+                {
+                    incoming.file->write(fileData);
+                    incoming.bytesReceived += fileData.size();
+                    incoming.file->flush();
+                }
+
+                handleFileComplete(transferId);
+                return;  // Exit early
+            }
+
+            // Regular file chunk - write raw bytes
+            if(incoming.file)
+            {
+                qint64 written = incoming.file->write(data);  // Write raw bytes!
+                incoming.bytesReceived += written;
+                incoming.file->flush();
+
+                // Update UI
+                if (incoming.totalSize > 0)
+                {
+                    int progress = (incoming.bytesReceived * 100) / incoming.totalSize;
+
+                    if (ui->fileProgressBar) {
+                        ui->fileProgressBar->setValue(progress);
+                    }
+
+                    if (ui->fileStatusLabel) {
+                        ui->fileStatusLabel->setText(
+                            QString("Receiving %1... %2% (%3/%4 MB)")
+                                .arg(incoming.fileName)
+                                .arg(progress)
+                                .arg(incoming.bytesReceived / 1024.0 / 1024.0, 0, 'f', 2)
+                                .arg(incoming.totalSize / 1024.0 / 1024.0, 0, 'f', 2)
+                            );
+                    }
+
+                    QCoreApplication::processEvents();  // Force UI update
+                }
+            }
+
+            return;  // Exit - don't process as text
+        }
+    }
+
+    //PRIORITY 2: check if FILE_TRANSFER_START is in this packet (before converting to string)
+    //this handles race condition where START message + file data arrive in same TCP packet
+    int startPos = data.indexOf("FILE_TRANSFER_START:");
+    if (startPos != -1)
+    {
+        qDebug() << "Found FILE_TRANSFER_START message";  // DEBUG
+        int endOfLine = data.indexOf('\n', startPos);
+        if (endOfLine != -1)
+        {
+            //extract ONLY the control message part (not the binary data after it)
+            QByteArray controlMsg = data.mid(startPos, endOfLine - startPos);
+            QString msg = QString::fromUtf8(controlMsg);
+
+            //parse the START message
+            QStringList parts = msg.split(':');
+            if(parts.size() >= 5)
+            {
+                QString transferId = parts[1];
+                QString sender = parts[2];
+                QString fileName = parts[3];
+                qint64 fileSize = parts[4].toLongLong();
+                QString caption = parts.size() > 5 ? parts.mid(5).join(':') : "";
+
+                //setup the download (creates file, adds to activeDownloads)
+                handleFileTransferStart(transferId, sender, fileName, fileSize, caption);
+
+                //CRITICAL: check if file data came right after the START message in same packet
+                int fileDataStart = endOfLine + 1;
+                if (fileDataStart < data.size() && !activeDownloads.isEmpty())
+                {
+                    //extract the binary file data that arrived with the START message
+                    QByteArray fileData = data.mid(fileDataStart);
+
+                    //write this first chunk immediately (don't lose it!)
+                    auto it = activeDownloads.begin();
+                    IncomingFile &incoming = it.value();
+                    if (incoming.file && !fileData.isEmpty())
+                    {
+                        incoming.file->write(fileData);
+                        incoming.bytesReceived += fileData.size();
+                        incoming.file->flush();
+
+                        //update progress bar with first chunk
+                        if (incoming.totalSize > 0)
+                        {
+                            int progress = (incoming.bytesReceived * 100) / incoming.totalSize;
+                            if (ui->fileProgressBar) {
+                                ui->fileProgressBar->setValue(progress);
+                            }
+                            if (ui->fileStatusLabel) {
+                                ui->fileStatusLabel->setText(
+                                    QString("Receiving %1... %2%")
+                                        .arg(incoming.fileName)
+                                        .arg(progress)
+                                    );
+                            }
+                        }
+                    }
+                }
+            }
+
+            return;  //exit - we've handled this packet completely
+        }
+    }
+
+    //PRIORITY 3: normal text message processing (no binary data in this packet)
+    QString allData = QString::fromUtf8(data);
     //split by newlines in case multiple msgs arrived together
     QStringList messages = allData.split('\n', Qt::SkipEmptyParts);
     QString timestamp = QDateTime::currentDateTime().toString("hh:mm A");
@@ -274,6 +434,161 @@ void MainWindow::receiveMessage()
     for(const QString &msg : messages)
     {
         if(msg.isEmpty()) continue;
+
+        //handle file transfer blocked
+        if(msg.startsWith("FILE_TRANSFER_BLOCKED:"))
+        {
+            QString reason = msg.mid(22).trimmed();
+            handleFileTransferBlocked(reason);
+            continue;
+        }
+        //handle file transfer approved
+        if (msg.startsWith("FILE_TRANSFER_APPROVED:"))
+        {
+            QString transferId = msg.mid(23).trimmed();
+            currentTransferId = transferId;
+
+            //send the file data
+            QFile file(pendingFilePath);
+            if(!file.open(QIODevice::ReadOnly))
+            {
+                QString errorMsg = QString("Cannot open file for reading: %1\nPath: %2")
+                .arg(file.errorString())
+                    .arg(pendingFilePath);
+                QMessageBox::critical(this, "Error", errorMsg);
+                isSendingFile = false;
+
+                // Clean up UI
+                if (ui->fileProgressBar) ui->fileProgressBar->setVisible(false);
+                if (ui->fileStatusLabel) ui->fileStatusLabel->setVisible(false);
+                if (ui->cancelFileBtn) ui->cancelFileBtn->setVisible(false);
+
+                return;
+            }
+
+            QFileInfo fileInfo(pendingFilePath);
+            qint64 fileSize = fileInfo.size();
+
+            //show progress ui
+            if (ui->fileProgressBar) {
+                ui->fileProgressBar->setVisible(true);
+                ui->fileProgressBar->setValue(0);
+                ui->fileProgressBar->setMaximum(100);
+            }
+
+            if (ui->fileStatusLabel) {
+                ui->fileStatusLabel->setVisible(true);
+                ui->fileStatusLabel->setText("Sending " + fileInfo.fileName() + "...");
+            }
+
+            if (ui->cancelFileBtn) {
+                ui->cancelFileBtn->setVisible(true);
+            }
+
+            //send file data in chunks
+            const qint64 chunkSize = 64 * 1024;
+            qint64 bytesSent = 0;
+
+            while(!file.atEnd())
+            {
+                QByteArray chunk = file.read(chunkSize);
+                if (chunk.isEmpty()) break;
+
+                qint64 written = tcpSocket->write(chunk);
+
+                if(written == -1)
+                {
+                    QMessageBox::critical(this, "Error", "Failed to send file data.");
+                    file.close();
+                    isSendingFile = false;
+
+                    if (ui->fileProgressBar) ui->fileProgressBar->setVisible(false);
+                    if (ui->fileStatusLabel) ui->fileStatusLabel->setVisible(false);
+                    if (ui->cancelFileBtn) ui->cancelFileBtn->setVisible(false);
+
+                    return;
+                }
+                bytesSent += written;
+
+                // IMPORTANT: Wait for data to be written before continuing
+                if (!tcpSocket->waitForBytesWritten(3000)) {
+                    QMessageBox::critical(this, "Error", "Timeout sending file data.");
+                    file.close();
+                    isSendingFile = false;
+
+                    if (ui->fileProgressBar) ui->fileProgressBar->setVisible(false);
+                    if (ui->fileStatusLabel) ui->fileStatusLabel->setVisible(false);
+                    if (ui->cancelFileBtn) ui->cancelFileBtn->setVisible(false);
+
+                    return;
+                }
+
+                //update progress bar
+                int progress = (bytesSent * 100) / fileSize;
+                if (ui->fileProgressBar) {
+                    ui->fileProgressBar->setValue(progress);
+                }
+                // Update status with progress
+                if (ui->fileStatusLabel) {
+                    ui->fileStatusLabel->setText(QString("Sending %1... %2%")
+                                                     .arg(fileInfo.fileName())
+                                                     .arg(progress));
+                }
+
+                QCoreApplication::processEvents();
+            }
+            file.close();
+            QThread::msleep(100);
+            //send completion msg
+            QString completion = QString("FILE_TRANSFER_COMPLETE:%1\n").arg(transferId);
+            tcpSocket->write(completion.toUtf8());
+            tcpSocket->flush();
+
+            //update ui
+            QString recipient = ui->activelist->currentText();
+            if (chatTabs.contains(recipient))
+            {
+                QString displayMsg = QString("[%1] Me: 📎 Sent file: %2 (%3 MB)")
+                                         .arg(timestamp)
+                                         .arg(fileInfo.fileName())
+                                         .arg(fileSize / 1024.0 / 1024.0, 0, 'f', 2);
+
+                appendAlignedMessage(chatTabs[recipient], displayMsg, Qt::AlignRight);
+            }
+
+            //clean up
+            isSendingFile = false;
+            currentTransferId.clear();
+
+            // NOW clear the attachment state (after file is sent)
+            pendingFilePath.clear();
+            hasattachedFile = false;
+
+            if (ui->attachFile) {
+                ui->attachFile->setText("📎");
+                ui->attachFile->setToolTip("Attach file");
+            }
+
+            QTimer::singleShot(1000, this, [this]() {
+                if (ui->fileProgressBar) ui->fileProgressBar->setVisible(false);
+                if (ui->fileStatusLabel) ui->fileStatusLabel->setVisible(false);
+                if (ui->cancelFileBtn) ui->cancelFileBtn->setVisible(false);
+            });
+
+            saveChatHistory();
+            continue;
+        }
+
+        //NOTE: FILE_TRANSFER_START is now handled above (PRIORITY 2) before string conversion
+        //removed from here to prevent binary data corruption
+
+        //handle file transfer cancled
+        if (msg.startsWith("FILE_TRANSFER_CANCELLED:"))
+        {
+            QString transferId = msg.mid(24).trimmed();
+            handleFileCancelled(transferId);
+            continue;
+        }
 
         //handle server shutdown msg
         if (msg == "SERVER_SHUTDOWN")
@@ -396,7 +711,7 @@ void MainWindow::receiveMessage()
                 {
                     activeClients.insert(sender,QHostAddress()); //update qmap
                 }
-                 loadChatHistoryForTab(sender);
+                loadChatHistoryForTab(sender);
             }
             //display pvt msgs in senders tab
             appendAlignedMessage(
@@ -593,10 +908,10 @@ void MainWindow::announceDeparture()
     //broadcast departure to all clients
     QString departure = "CLIENT_DEPARTURE:" + LoggedUser;
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 5; i++) {
         udpSocket->writeDatagram(departure.toUtf8(), QHostAddress::Broadcast, PORT);
         QCoreApplication::processEvents();  // processes all other pending udp packets
-        QThread::msleep(50);
+        QThread::msleep(100);
     }
 }
 
@@ -656,114 +971,6 @@ void MainWindow::on_logout_clicked()
 
 }
 
-
-void MainWindow::on_attachFile_clicked()
-{
-    if(hasattachedFile) //check if file already attached
-    {
-        // Clear internal state
-        pendingFilePath.clear();
-        hasattachedFile = false;
-
-        // Reset message input placeholder
-        ui->messageEdit->setPlaceholderText("Type a message...");
-
-        // Reset attach button
-        if (ui->attachFile) {
-            ui->attachFile->setText("📎");
-            ui->attachFile->setToolTip("Attach file");
-        }
-        // Hide status label
-        if (ui->fileStatusLabel) {
-            ui->fileStatusLabel->hide();
-            ui->fileStatusLabel->setText("");
-        }
-        return;
-    }
-    //check reciever
-    QString recipient = ui->activelist->currentText();
-    if(recipient == "All"){
-        QMessageBox::warning(this, "File Transfer",
-                             "Cannot send files to 'All'. Please select a specific user.");
-        return;
-    }
-    //open file browser
-    QString filepath = QFileDialog::getOpenFileName(
-        this,
-        "Select FIle to Attach",
-        QDir::homePath(),
-        "All Files (*);;Documents (*.pdf *.docx *.txt);;Images (*.jpg *.png *.gif);;Videos (*.mp4 *.avi)"
-        );
-
-    if(filepath.isEmpty()) return; //user canceled
-    //validate file
-    QFileInfo fileinfo(filepath);
-    qint64 filesize = fileinfo.size();
-
-    if (filesize > 2147483648LL) {  // 2GB limit
-        QMessageBox::warning(this, "File Too Large",
-                             "File size exceeds 2GB limit.");
-        return;
-    }
-
-    if(!fileinfo.exists() || !fileinfo.isReadable())
-    {
-        QMessageBox::critical(this, "Error",
-                              "Cannot read file.");
-        return;
-    }
-
-    //store file
-    pendingFilePath = filepath;
-    hasattachedFile = true;
-
-    //update ui to show attachment
-    QString filename = fileinfo.fileName();
-    QString size = QString::number(filesize / 1024.0 /1024.0 ,'f' , 2) + " MB";
-
-    // Get icon based on file type
-    QString icon = "📎";  // Default
-    QString ext = fileinfo.suffix().toLower(); //gets the extension
-
-    if (ext == "jpg" || ext == "png" || ext == "gif" || ext == "jpeg" || ext == "bmp") {
-        icon = "🖼️";
-    } else if (ext == "pdf") {
-        icon = "📄";
-    } else if (ext == "doc" || ext == "docx" || ext == "txt") {
-        icon = "📝";
-    } else if (ext == "mp4" || ext == "avi" || ext == "mkv" || ext == "mov") {
-        icon = "🎬";
-    } else if (ext == "zip" || ext == "rar" || ext == "7z") {
-        icon = "📦";
-    } else if (ext == "mp3" || ext == "wav" || ext == "flac") {
-        icon = "🎵";
-    }
-
-    //Update message input placeholder
-    QString placeholderText = QString("%1 %2 (%3) - Type caption (optional)")
-                                  .arg(icon)
-                                  .arg(filename)
-                                  .arg(size);
-    ui->messageEdit->setPlaceholderText(placeholderText);
-
-    // Change attach button to "remove" button
-    if (ui->attachFile) {
-        ui->attachFile->setText("✖");
-        ui->attachFile->setToolTip("Remove attachment");
-    }
-
-    //Show a label with file info
-    if (ui->fileStatusLabel) {
-        ui->fileStatusLabel->setText(QString("%1 %2 (%3) attached")
-                                         .arg(icon).arg(filename).arg(size));
-        ui->fileStatusLabel->show();
-    }
-    //Show in chat ( so user knows file is ready)
-    if (chatTabs.contains(recipient)) {
-        chatTabs[recipient]->append(QString("--- File ready to send: %1 %2 (%3) ---")
-                                        .arg(icon).arg(filename).arg(size));
-    }
-}
 
 void MainWindow::loadChatHistory()  //load for all tab
 {
@@ -1138,3 +1345,304 @@ void MainWindow::setemojiBtn()
     ui->emojiBtn->setMenu(emojiMenu); //this automakes sure that it works on button press
 }
 
+
+/*---------FILE upload codes---------*/
+
+void MainWindow::on_attachFile_clicked()
+{
+    if(hasattachedFile) //check if file already attached
+    {
+        // Clear internal state
+        pendingFilePath.clear();
+        hasattachedFile = false;
+
+        // Reset message input placeholder
+        ui->messageEdit->setPlaceholderText("Type a message...");
+
+        // Reset attach button
+        if (ui->attachFile) {
+            ui->attachFile->setText("📎");
+            ui->attachFile->setToolTip("Attach file");
+        }
+        // Hide status label
+        if (ui->fileStatusLabel) {
+            ui->fileStatusLabel->hide();
+            ui->fileStatusLabel->setText("");
+        }
+        return;
+    }
+    //check reciever
+    QString recipient = ui->activelist->currentText();
+    if(recipient == "All"){
+        QMessageBox::warning(this, "File Transfer",
+                             "Cannot send files to 'All'. Please select a specific user.");
+        return;
+    }
+    //open file browser
+    QString filepath = QFileDialog::getOpenFileName(
+        this,
+        "Select FIle to Attach",
+        QDir::homePath(),
+        "All Files (*);;Documents (*.pdf *.docx *.txt);;Images (*.jpg *.png *.gif);;Videos (*.mp4 *.avi)"
+        );
+
+    if(filepath.isEmpty()) return; //user canceled
+    //validate file
+    QFileInfo fileinfo(filepath);
+    qint64 filesize = fileinfo.size();
+
+    if (filesize > 2147483648LL) {  // 2GB limit
+        QMessageBox::warning(this, "File Too Large",
+                             "File size exceeds 2GB limit.");
+        return;
+    }
+
+    if(!fileinfo.exists() || !fileinfo.isReadable())
+    {
+        QMessageBox::critical(this, "Error",
+                              "Cannot read file.");
+        return;
+    }
+
+    //store file
+    pendingFilePath = filepath;
+    hasattachedFile = true;
+
+    //update ui to show attachment
+    QString filename = fileinfo.fileName();
+    QString size = QString::number(filesize / 1024.0 /1024.0 ,'f' , 2) + " MB";
+
+    // Get icon based on file type
+    QString icon = "📎";  // Default
+    QString ext = fileinfo.suffix().toLower(); //gets the extension
+
+    if (ext == "jpg" || ext == "png" || ext == "gif" || ext == "jpeg" || ext == "bmp") {
+        icon = "🖼️";
+    } else if (ext == "pdf") {
+        icon = "📄";
+    } else if (ext == "doc" || ext == "docx" || ext == "txt") {
+        icon = "📝";
+    } else if (ext == "mp4" || ext == "avi" || ext == "mkv" || ext == "mov") {
+        icon = "🎬";
+    } else if (ext == "zip" || ext == "rar" || ext == "7z") {
+        icon = "📦";
+    } else if (ext == "mp3" || ext == "wav" || ext == "flac") {
+        icon = "🎵";
+    }
+
+    //Update message input placeholder
+    QString placeholderText = QString("%1 %2 (%3) - Type caption (optional)")
+                                  .arg(icon)
+                                  .arg(filename)
+                                  .arg(size);
+    ui->messageEdit->setPlaceholderText(placeholderText);
+
+    // Change attach button to "remove" button
+    if (ui->attachFile) {
+        ui->attachFile->setText("✖");
+        ui->attachFile->setToolTip("Remove attachment");
+    }
+
+    //Show a label with file info
+    if (ui->fileStatusLabel) {
+        ui->fileStatusLabel->setText(QString("%1 %2 (%3) attached")
+                                         .arg(icon).arg(filename).arg(size));
+        ui->fileStatusLabel->show();
+    }
+    //Show in chat ( so user knows file is ready)
+    if (chatTabs.contains(recipient)) {
+        chatTabs[recipient]->append(QString("--- File ready to send: %1 %2 (%3) ---")
+                                        .arg(icon).arg(filename).arg(size));
+    }
+}
+
+void MainWindow::sendFile(const QString &recipient, const QString &caption)
+{
+    // Check if already sending
+    if (isSendingFile)
+    {
+        QMessageBox::warning(this, "File Transfer",
+                             "You are already sending a file. Please wait.");
+        return;
+    }
+
+    // Verify file still exists
+    QFileInfo fileInfo(pendingFilePath);
+    if (!fileInfo.exists()) {
+        QMessageBox::critical(this, "Error", "File no longer exists.");
+        return;
+    }
+
+    if (!fileInfo.isReadable()) {
+        QMessageBox::critical(this, "Error", "File is not readable. Check permissions.");
+        return;
+    }
+
+    QString fileName = fileInfo.fileName();
+    qint64 fileSize = fileInfo.size();
+
+    //send transfer request to server
+    QString request = QString("FILE_TRANSFER_REQUEST:%1:%2:%3:%4:%5\n")
+                          .arg(recipient)
+                          .arg(LoggedUser)
+                          .arg(fileName)
+                          .arg(fileSize)
+                          .arg(caption);
+    tcpSocket->write(request.toUtf8());
+    tcpSocket->flush();
+
+    isSendingFile = true; //prevent multiple sends
+
+    // Show waiting UI
+    if (ui->fileStatusLabel) {
+        ui->fileStatusLabel->setVisible(true);
+        ui->fileStatusLabel->setText("Requesting file transfer...");
+    }
+}
+void MainWindow::handleFileTransferBlocked(const QString &reason)
+{
+    isSendingFile = false;
+    QMessageBox::warning(this, "File Transfer Blocked", reason);
+
+    if (ui->fileProgressBar) ui->fileProgressBar->setVisible(false);
+    if (ui->fileStatusLabel) ui->fileStatusLabel->setVisible(false);
+    if (ui->cancelFileBtn) ui->cancelFileBtn->setVisible(false);
+}
+
+void MainWindow::handleFileTransferStart(const QString &transferId, const QString &sender,
+                                         const QString &fileName, qint64 fileSize,
+                                         const QString &caption)
+{
+    qDebug() << "Setting up file transfer:" << fileName << "from" << sender;
+
+    // AUTO-ACCEPT (no blocking dialog)
+    QString savePath = QDir::homePath() + "/Downloads/" + fileName;
+    QDir().mkpath(QDir::homePath() + "/Downloads/");
+
+    QFile *file = new QFile(savePath);
+    if (!file->open(QIODevice::WriteOnly))
+    {
+        qDebug() << "ERROR: Cannot create file:" << file->errorString();
+        QMessageBox::critical(this, "Error",
+                              "Cannot create file: " + file->errorString());
+        delete file;
+
+        // Send rejection to server (optional)
+        QString rejection = QString("FILE_TRANSFER_REJECTED:%1\n").arg(transferId);
+        tcpSocket->write(rejection.toUtf8());
+        tcpSocket->flush();
+        return;
+    }
+
+    qDebug() << "File opened successfully:" << savePath;
+
+    // Create incoming file structure
+    IncomingFile incoming;
+    incoming.file = file;
+    incoming.fileName = fileName;
+    incoming.sender = sender;
+    incoming.totalSize = fileSize;
+    incoming.bytesReceived = 0;
+    incoming.transferId = transferId;
+
+    // Add to activeDownloads BEFORE receiving data
+    activeDownloads[transferId] = incoming;
+
+    qDebug() << "Added to activeDownloads. Waiting for data...";
+
+    // Show progress UI
+    if (ui->fileProgressBar) {
+        ui->fileProgressBar->setVisible(true);
+        ui->fileProgressBar->setValue(0);
+        ui->fileProgressBar->setMaximum(100);
+    }
+
+    if (ui->fileStatusLabel) {
+        ui->fileStatusLabel->setVisible(true);
+        ui->fileStatusLabel->setText("Receiving " + fileName + "... 0%");
+    }
+
+    if (ui->cancelFileBtn) {
+        ui->cancelFileBtn->setVisible(true);
+    }
+
+    // Show non-blocking notification
+    QString notifMsg = sender + " is sending: " + fileName;
+    if (!caption.isEmpty()) {
+        notifMsg += "\n" + caption;
+    }
+    trayicon->showMessage("File incoming — NovaChat", notifMsg,
+                          QSystemTrayIcon::Information, 3000);
+
+    // Show in chat (non-blocking)
+    if (chatTabs.contains(sender)) {
+        chatTabs[sender]->append(QString("--- Receiving file: %1 (%2 MB) ---")
+                                     .arg(fileName)
+                                     .arg(fileSize / 1024.0 / 1024.0, 0, 'f', 2));
+    }
+}
+
+void MainWindow::handleFileComplete(const QString &transferId)
+{
+    if (!activeDownloads.contains(transferId)) return;
+
+    IncomingFile &incoming = activeDownloads[transferId];
+
+    if (incoming.file)
+    {
+        incoming.file->close();
+        delete incoming.file;
+    }
+    QString timestamp = QDateTime::currentDateTime().toString("hh:mm A");
+    if (chatTabs.contains(incoming.sender))
+    {
+        QString displayMsg = QString("[%1] %2: 📎 Sent file: %3 (%4 MB)")
+                                 .arg(timestamp)
+                                 .arg(incoming.sender)
+                                 .arg(incoming.fileName)
+                                 .arg(incoming.totalSize / 1024.0 / 1024.0, 0, 'f', 2);
+
+        appendAlignedMessage(chatTabs[incoming.sender], displayMsg, Qt::AlignLeft);
+    }
+
+    if (ui->fileStatusLabel) {
+        ui->fileStatusLabel->setText("File received: " + incoming.fileName);
+    }
+
+    QTimer::singleShot(2000, this, [this]() {
+        if (ui->fileProgressBar) ui->fileProgressBar->setVisible(false);
+        if (ui->fileStatusLabel) ui->fileStatusLabel->setVisible(false);
+        if (ui->cancelFileBtn) ui->cancelFileBtn->setVisible(false);
+    });
+
+    activeDownloads.remove(transferId);
+    saveChatHistory();
+}
+void MainWindow::handleFileCancelled(const QString &transferId)
+{
+    if (activeDownloads.contains(transferId))
+    {
+        IncomingFile incoming = activeDownloads[transferId];
+
+        if (incoming.file)
+        {
+            incoming.file->close();
+            incoming.file->remove();  // Delete incomplete file
+            delete incoming.file;
+        }
+
+        activeDownloads.remove(transferId);
+
+        QMessageBox::information(this, "File Transfer",
+                                 "File transfer was cancelled by the sender.");
+    }
+
+    if (ui->fileProgressBar) ui->fileProgressBar->setVisible(false);
+    if (ui->fileStatusLabel) ui->fileStatusLabel->setVisible(false);
+}
+
+void MainWindow::handleFileData(const QString &transferId, const QByteArray &data)
+{
+    // This function is not used in current implementation
+    // File data is handled directly in receiveMessage()
+}

@@ -68,8 +68,8 @@ constexpr auto qt_meta_stringdata_CLASSMainWindowENDCLASS = QtMocHelpers::string
     "Qt::Alignment",
     "alignment",
     "clearCurrentChatHistory",
-    "on_attachFile_clicked",
-    "setemojiBtn"
+    "setemojiBtn",
+    "on_attachFile_clicked"
 );
 #else  // !QT_MOC_HAS_STRINGDATA
 #error "qtmochelpers.h not found or too old."
@@ -189,9 +189,9 @@ Q_CONSTINIT const QMetaObject MainWindow::staticMetaObject = { {
         QtPrivate::TypeAndForceComplete<Qt::Alignment, std::false_type>,
         // method 'clearCurrentChatHistory'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
-        // method 'on_attachFile_clicked'
-        QtPrivate::TypeAndForceComplete<void, std::false_type>,
         // method 'setemojiBtn'
+        QtPrivate::TypeAndForceComplete<void, std::false_type>,
+        // method 'on_attachFile_clicked'
         QtPrivate::TypeAndForceComplete<void, std::false_type>
     >,
     nullptr
@@ -221,8 +221,8 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 15: _t->loadChatHistoryForTab((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
         case 16: _t->appendAlignedMessage((*reinterpret_cast< std::add_pointer_t<QTextEdit*>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<QString>>(_a[2])),(*reinterpret_cast< std::add_pointer_t<Qt::Alignment>>(_a[3]))); break;
         case 17: _t->clearCurrentChatHistory(); break;
-        case 18: _t->on_attachFile_clicked(); break;
-        case 19: _t->setemojiBtn(); break;
+        case 18: _t->setemojiBtn(); break;
+        case 19: _t->on_attachFile_clicked(); break;
         default: ;
         }
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {

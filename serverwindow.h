@@ -7,6 +7,7 @@
 #include <QTcpSocket>
 #include <QTextEdit>
 #include <QMap>
+#include <QSet> //qset is a collection where no duplicates allowed
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -33,7 +34,6 @@ private slots:
     void onClientDisconnected();
     void broadcastServerPresence();
     void onTabscloseRequested(int index);
-
     void on_logout_clicked();
 
 private:
@@ -54,6 +54,29 @@ private:
     // Helper functions
     void addClientTab(const QString &username);
     void removeClientTab(const QString &username);
+
+    //file transfer
+    struct FileTransferInfo{
+        QString sender;
+        QString recipient;
+        QString fileName;
+        qint64 fileSize;
+        qint64 bytesTransferred;
+        QString transferId;
+        qint64 expectedSize;   // total file size
+
+    };
+    QMap<QString, FileTransferInfo> activeTransfers;  // transferId -> transfer info
+    QMap<QTcpSocket*, QString> socketToTransferId;    // socket -> transferId
+    QSet<QString> busyRecipients;                     // Users currently receiving files
+    QSet<QString> busySenders;                        // Users currently sending files
+
+    //file transfer hepler funcs
+    QString generateTransferId(const QString &sender, const QString &recipient);
+    bool canStartTransfer(const QString &sender, const QString &recipient);
+    void handleFileDataRelay(QTcpSocket *senderSocket, const QString &transferId);
+    void cleanupUserTransfers(const QString &username);
 };
+
 
 #endif // SERVERWINDOW_H

@@ -186,6 +186,9 @@ public:
         clearChatBtn_->setText(QCoreApplication::translate("MainWindow", "Clear Chat", nullptr));
         logout->setText(QCoreApplication::translate("MainWindow", "Logout", nullptr));
         label->setText(QCoreApplication::translate("MainWindow", "To:", nullptr));
+#if QT_CONFIG(tooltip)
+        attachFile->setToolTip(QCoreApplication::translate("MainWindow", "<html><head/><body><p>Attach File</p></body></html>", nullptr));
+#endif // QT_CONFIG(tooltip)
         attachFile->setText(QCoreApplication::translate("MainWindow", "\360\237\223\216", nullptr));
         label_2->setText(QCoreApplication::translate("MainWindow", "Message:", nullptr));
         messageEdit->setPlaceholderText(QCoreApplication::translate("MainWindow", "Type your message...", nullptr));

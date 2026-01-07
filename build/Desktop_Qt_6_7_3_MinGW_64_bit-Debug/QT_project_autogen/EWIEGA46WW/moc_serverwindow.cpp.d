@@ -1,6 +1,7 @@
 E:/QT\ projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/EWIEGA46WW/moc_serverwindow.cpp: E:/QT\ projects/QT_project/serverwindow.h \
   E:/QT\ projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_autogen/moc_predefs.h \
   D:/Qt/6.7.3/mingw_64/include/QtCore/QMap \
+  D:/Qt/6.7.3/mingw_64/include/QtCore/QSet \
   D:/Qt/6.7.3/mingw_64/include/QtCore/q20functional.h \
   D:/Qt/6.7.3/mingw_64/include/QtCore/q20memory.h \
   D:/Qt/6.7.3/mingw_64/include/QtCore/q20type_traits.h \

@@ -7,6 +7,7 @@
 #include <QTextEdit>
 #include <QMap>
 #include <QHostAddress>
+#include <QFile>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -45,11 +46,13 @@ private slots:
     void loadChatHistoryForTab(const QString& tabname);
     void appendAlignedMessage(QTextEdit *view, const QString &text, Qt::Alignment alignment);
     void clearCurrentChatHistory();
+    void setemojiBtn();
+
     //file send
     void on_attachFile_clicked();
 
 
-    void setemojiBtn();
+
 
 private:
     Ui::MainWindow *ui;
@@ -78,9 +81,31 @@ private:
 
     QMenu *emojiMenu;
 
-    //file send
+    //file attachment states(before sending)
     QString pendingFilePath;
     bool hasattachedFile;
+    bool isSendingFile;
+    QString currentTransferId;
+
+    struct IncomingFile{
+        QFile *file;
+        QString fileName;
+        QString sender;
+        qint64 totalSize;
+        qint64 bytesReceived;
+        QString transferId;
+    };
+
+    QMap<QString, IncomingFile> activeDownloads;
+
+    //hepler funcs- for file transfer
+    void sendFile(const QString &recipient, const QString &caption);
+    void handleFileTransferBlocked(const QString &reason);
+    void handleFileTransferStart(const QString &transferId, const QString &sender,
+                                 const QString &fileName, qint64 fileSize, const QString &caption);
+    void handleFileData(const QString &transferId, const QByteArray &data);
+    void handleFileComplete(const QString &transferId);
+    void handleFileCancelled(const QString &transferId);
 };
 
 #endif // MAINWINDOW_H

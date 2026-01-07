@@ -8,6 +8,7 @@
 #include <QThread>
 #include <QTabBar>
 #include <QNetworkInterface>
+#include <QDateTime>
 
 ServerWindow::ServerWindow(QString username, QWidget *parent)
     : QMainWindow(parent)
@@ -101,8 +102,18 @@ void ServerWindow::onClientDataReceived() //this routes the msg from one client 
     QTcpSocket *clientSocket = qobject_cast<QTcpSocket*>(sender());  //sender returns pointer to the one that emitted signal
 
     if (!clientSocket) return;
+    // If socket is in file-transfer mode, relay raw bytes ONLY
+    if (socketToTransferId.contains(clientSocket)) {
+        QString transferId = socketToTransferId[clientSocket];
+        if (activeTransfers.contains(transferId)) {
+            handleFileDataRelay(clientSocket, transferId);
+            return;  // IMPORTANT: do not parse as text
+        }
+    }
 
+    //msg handling
     QByteArray data = clientSocket->readAll(); //reads all data from this client
+    // Only convert to QString if it's NOT file data
     QString alldata = QString::fromUtf8(data);
 
     //split by new lines in case multiple msg arrive
@@ -143,6 +154,159 @@ void ServerWindow::onClientDataReceived() //this routes the msg from one client 
             clientSockets.remove(clientSocket);
 
             clientSocket->disconnectFromHost();
+            continue;
+        }
+
+        //handle file transfer request
+        if(message.startsWith("FILE_TRANSFER_REQUEST:"))
+        {
+            QStringList parts = message.split(':');
+            if (parts.size() >= 5)
+            {
+                QString recipient = parts[1];
+                QString sender = parts[2];
+                QString fileName = parts[3];
+                qint64 fileSize = parts[4].toLongLong();
+                QString caption = parts.size() > 5 ? parts.mid(5).join(':') : "";
+
+                // Check if transfer can start
+                if(!canStartTransfer(sender, recipient))
+                {
+                    QString rejection;
+                    if (busySenders.contains(sender)) {
+                        rejection = "FILE_TRANSFER_BLOCKED:You are already sending a file. Please wait.\n";
+                    } else if (busyRecipients.contains(recipient)) {
+                        rejection = QString("FILE_TRANSFER_BLOCKED:%1 is currently receiving a file. Try again later.\n")
+                        .arg(recipient);
+                    }
+                    clientSocket->write(rejection.toUtf8());
+                    clientSocket->flush();
+                    continue;
+                }
+
+                // Generate unique transfer ID
+                QString transferId = generateTransferId(sender, recipient);
+
+                // Create transfer info
+                FileTransferInfo info;
+                info.sender = sender;
+                info.recipient = recipient;
+                info.fileName = fileName;
+                info.fileSize = fileSize;
+                info.bytesTransferred = 0;
+                info.expectedSize = fileSize;
+                info.transferId = transferId;
+
+                activeTransfers[transferId] = info;
+
+                // Mark busy BEFORE sending approval
+                busySenders.insert(sender);
+                busyRecipients.insert(recipient);
+
+                // Display in sender's tab
+                if(clientTabs.contains(sender))
+                {
+                    QTextEdit *view = clientTabs[sender];
+                    if(view)
+                    {
+                        QString displayMsg = QString("%1 (to %2): 📎 Sending file: %3 (%4 MB)")
+                                                 .arg(sender)
+                                                 .arg(recipient)
+                                                 .arg(fileName)
+                                                 .arg(fileSize / 1024.0 / 1024.0, 0, 'f', 2);
+
+                        if (!caption.isEmpty()) {
+                            displayMsg += "\n    Caption: " + caption;
+                        }
+                        view->append(displayMsg);
+                    }
+                }
+
+                // CRITICAL: Find recipient socket FIRST
+                QTcpSocket *recipientSocket = nullptr;
+                for(auto it = clientSockets.begin(); it != clientSockets.end(); ++it)
+                {
+                    if(it.value() == recipient)
+                    {
+                        recipientSocket = it.key();
+                        break;
+                    }
+                }
+
+                if (!recipientSocket || recipientSocket->state() != QAbstractSocket::ConnectedState)
+                {
+                    // Recipient offline - abort
+                    clientSocket->write("FILE_TRANSFER_BLOCKED:Recipient is offline.\n");
+                    clientSocket->flush();
+
+                    activeTransfers.remove(transferId);
+                    busySenders.remove(sender);
+                    busyRecipients.remove(recipient);
+                    continue;
+                }
+
+                // Send FILE_TRANSFER_START to recipient FIRST
+                QString fileHeader = QString("FILE_TRANSFER_START:%1:%2:%3:%4:%5\n")
+                                         .arg(transferId)
+                                         .arg(sender)
+                                         .arg(fileName)
+                                         .arg(fileSize)
+                                         .arg(caption);
+
+                recipientSocket->write(fileHeader.toUtf8());
+                recipientSocket->flush();
+
+                // Give recipient time to create file
+                QThread::msleep(100);
+
+                // NOW enable relay mode for sender (AFTER recipient is ready)
+                socketToTransferId[clientSocket] = transferId;
+
+                // Send approval to sender (this triggers file sending)
+                QString approval = QString("FILE_TRANSFER_APPROVED:%1\n").arg(transferId);
+                clientSocket->write(approval.toUtf8());
+                clientSocket->flush();
+            }
+            continue;
+        }
+
+        //handle file transfer complete
+        if(message.startsWith("FILE_TRANSFER_COMPLETE:"))
+        {
+            QString transferId = message.mid(23).trimmed();
+            if (activeTransfers.contains(transferId))
+            {
+                FileTransferInfo info = activeTransfers[transferId];
+
+                // Clean up
+                busySenders.remove(info.sender);
+                busyRecipients.remove(info.recipient);
+                activeTransfers.remove(transferId);
+
+                // Remove socket mappings
+                for (auto it = socketToTransferId.begin(); it != socketToTransferId.end();)
+                {
+                    if (it.value() == transferId) {
+                        it = socketToTransferId.erase(it);
+                    } else {
+                        ++it;
+                    }
+                }
+
+                for(auto it = clientSockets.begin(); it != clientSockets.end(); ++it)
+                {
+                    if(it.value() == info.recipient)
+                    {
+                        QTcpSocket *recipientSocket = it.key();
+                        if(recipientSocket->state() == QAbstractSocket::ConnectedState)
+                        {
+                            recipientSocket->write((message + "\n").toUtf8());
+                            recipientSocket->flush();
+                        }
+                        break;
+                    }
+                }
+            }
             continue;
         }
 
@@ -254,6 +418,7 @@ void ServerWindow::onClientDisconnected()
 
     if (!username.isEmpty())
     {
+        cleanupUserTransfers(username); //clean any active transfers
         removeClientTab(username); //func def below
 
         if (ui->client_name) {
@@ -433,4 +598,168 @@ void ServerWindow::on_logout_clicked()
     loginwindow->show();
     close();
 }
+
+//file transfer helper funcs
+QString ServerWindow::generateTransferId(const QString &sender, const QString &recipient)
+{
+    return sender + "_to_" + recipient + "_" +
+           QString::number(QDateTime::currentMSecsSinceEpoch());
+}
+
+bool ServerWindow::canStartTransfer(const QString &sender, const QString &recipient)
+{
+    // Check if sender is already sending
+    if (busySenders.contains(sender)) {
+        return false;
+    }
+
+    // Check if recipient is already receiving
+    if (busyRecipients.contains(recipient)) {
+        return false;
+    }
+
+    return true;
+}
+
+//this funcroutes binary file chunks from the sender to the
+// correct recipient without mixing them up with other transfers.
+void ServerWindow::handleFileDataRelay(QTcpSocket *senderSocket, const QString &transferId)
+{
+    if (!activeTransfers.contains(transferId)) {
+        qDebug() << "Transfer ID not found:" << transferId;
+        return;
+    }
+
+    FileTransferInfo &info = activeTransfers[transferId];
+
+    // Read all available data from sender
+    QByteArray chunk = senderSocket->readAll();
+
+    if (chunk.isEmpty()) {
+        qDebug() << "Empty chunk received";
+        return;
+    }
+
+    qDebug() << "Relaying" << chunk.size() << "bytes for" << transferId;
+
+    // Find recipient socket
+    QTcpSocket *recipientSocket = nullptr;
+    for (auto it = clientSockets.begin(); it != clientSockets.end(); ++it)
+    {
+        if (it.value() == info.recipient)
+        {
+            recipientSocket = it.key();
+            break;
+        }
+    }
+
+    if (!recipientSocket || recipientSocket->state() != QAbstractSocket::ConnectedState)
+    {
+        qDebug() << "Recipient socket not available!";
+
+        // Cancel transfer
+        QString cancellation = QString("FILE_TRANSFER_CANCELLED:%1\n").arg(transferId);
+        senderSocket->write(cancellation.toUtf8());
+        senderSocket->flush();
+
+        // Cleanup
+        busySenders.remove(info.sender);
+        busyRecipients.remove(info.recipient);
+        activeTransfers.remove(transferId);
+        socketToTransferId.remove(senderSocket);
+        return;
+    }
+
+    // Forward to recipient with error checking
+    qint64 written = recipientSocket->write(chunk);
+    if (written != chunk.size()) {
+        qDebug() << "Warning: Only wrote" << written << "of" << chunk.size() << "bytes";
+    }
+    recipientSocket->flush();
+
+    // CRITICAL FIX: Track how much we've RECEIVED from sender, not sent to recipient
+    info.bytesTransferred += chunk.size();  // This tracks RECEIVED bytes
+
+    qDebug() << "Progress:" << info.bytesTransferred << "/" << info.expectedSize;
+
+    // Check if transfer complete
+    if (info.bytesTransferred >= info.expectedSize)
+    {
+        qDebug() << "Transfer complete:" << transferId;
+
+        // Give time for last chunk to reach recipient
+        QThread::msleep(100);
+
+        QString completeMsg = QString("FILE_TRANSFER_COMPLETE:%1\n").arg(transferId);
+
+        // Notify both parties
+        senderSocket->write(completeMsg.toUtf8());
+        senderSocket->flush();
+
+        recipientSocket->write(completeMsg.toUtf8());
+        recipientSocket->flush();
+
+        // Cleanup
+        busySenders.remove(info.sender);
+        busyRecipients.remove(info.recipient);
+        activeTransfers.remove(transferId);
+        socketToTransferId.remove(senderSocket);
+    }
+}
+
+void ServerWindow::cleanupUserTransfers(const QString &username)
+{
+    // Remove from busy sets
+    busySenders.remove(username);
+    busyRecipients.remove(username);
+
+    // Cancel active transfers involving this user
+    for (auto it = activeTransfers.begin(); it != activeTransfers.end();)
+    {
+        if (it->sender == username || it->recipient == username)
+        {
+            QString transferId = it.key();
+
+            // Notify the other party
+            QString otherUser = (it->sender == username) ? it->recipient : it->sender;
+            QString cancellation = QString("FILE_TRANSFER_CANCELLED:%1\n").arg(transferId);
+
+            for(auto sockIt = clientSockets.begin(); sockIt != clientSockets.end(); ++sockIt)
+            {
+                if(sockIt.value() == otherUser)
+                {
+                    QTcpSocket *socket = sockIt.key();
+                    if(socket->state() == QAbstractSocket::ConnectedState)
+                    {
+                        socket->write(cancellation.toUtf8());
+                        socket->flush();
+                    }
+                    break;
+                }
+            }
+
+            it = activeTransfers.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
+    // Clean up socket mappings
+    for (auto it = socketToTransferId.begin(); it != socketToTransferId.end();)
+    {
+        QTcpSocket *socket = it.key();
+        if (clientSockets.value(socket, "") == username)
+        {
+            it = socketToTransferId.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+}
+
+
 
