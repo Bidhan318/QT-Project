@@ -1,0 +1,9 @@
+C:/Users/dhaka/OneDrive/Desktop/QT-Project-bidhan/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/QT_project.dir
+C:/Users/dhaka/OneDrive/Desktop/QT-Project-bidhan/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/edit_cache.dir
+C:/Users/dhaka/OneDrive/Desktop/QT-Project-bidhan/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/rebuild_cache.dir
+C:/Users/dhaka/OneDrive/Desktop/QT-Project-bidhan/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/list_install_components.dir
+C:/Users/dhaka/OneDrive/Desktop/QT-Project-bidhan/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/install.dir
+C:/Users/dhaka/OneDrive/Desktop/QT-Project-bidhan/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/install/local.dir
+C:/Users/dhaka/OneDrive/Desktop/QT-Project-bidhan/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/install/strip.dir
+C:/Users/dhaka/OneDrive/Desktop/QT-Project-bidhan/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/QT_project_autogen_timestamp_deps.dir
+C:/Users/dhaka/OneDrive/Desktop/QT-Project-bidhan/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/QT_project_autogen.dir
