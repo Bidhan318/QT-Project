@@ -21,6 +21,7 @@
 #include <QTextCursor>
 #include <QTextBlockFormat>
 #include <QDateTime>
+#include <QCryptographicHash>
 
 MainWindow::MainWindow(QString username, QWidget *parent)
     : QMainWindow(parent)
@@ -1080,6 +1081,38 @@ void MainWindow::on_logout_clicked()
 
 }
 
+// ===== SIMPLE REVERSIBLE ENCRYPTION (LOCAL STORAGE ONLY) =====
+QByteArray MainWindow::getKey()
+{
+    return QCryptographicHash::hash(
+        QString("NovaChat-Local-Key").toUtf8(),
+        QCryptographicHash::Sha256
+        );
+}
+
+QString MainWindow::encryptString(const QString &plain)
+{
+    QByteArray data = plain.toUtf8();
+    QByteArray key = getKey();
+
+    for (int i = 0; i < data.size(); ++i)
+        data[i] = data[i] ^ key[i % key.size()];
+
+    return QString::fromUtf8(data.toBase64());
+}
+
+QString MainWindow::decryptString(const QString &encrypted)
+{
+    QByteArray data = QByteArray::fromBase64(encrypted.toUtf8());
+    QByteArray key = getKey();
+
+    for (int i = 0; i < data.size(); ++i)
+        data[i] = data[i] ^ key[i % key.size()];
+
+    return QString::fromUtf8(data);
+}
+
+
 
 void MainWindow::loadChatHistory()  //load for all tab
 {
@@ -1120,9 +1153,9 @@ void MainWindow::loadChatHistory()  //load for all tab
         for (const QJsonValue &msgVal : messages)
         {
             QJsonObject msgObj = msgVal.toObject();
-            QString timestamp = msgObj["timestamp"].toString();
-            QString from = msgObj["from"].toString();
-            QString message = msgObj["message"].toString();
+            QString timestamp = decryptString(msgObj["timestamp"].toString());
+            QString from = decryptString(msgObj["from"].toString());
+            QString message = decryptString(msgObj["message"].toString());
 
             Qt::Alignment align = (from == LoggedUser) ? Qt::AlignRight : Qt::AlignLeft;
             QString displayFrom = (from == LoggedUser) ? "Me" : from;
@@ -1199,9 +1232,9 @@ void MainWindow::saveChatHistory()
             QString message = rest.mid(sep + 1).trimmed();
 
             QJsonObject msgObj;
-            msgObj["timestamp"] = timestamp;
-            msgObj["from"] = from;
-            msgObj["message"] = message;
+            msgObj["timestamp"] = encryptString(timestamp);
+            msgObj["from"] = encryptString(from);
+            msgObj["message"] = encryptString(message);
 
             messages.append(msgObj);
         }
@@ -1251,9 +1284,9 @@ void MainWindow::loadChatHistoryForTab(const QString &tabName) //load for pvt ms
     for (const QJsonValue &msgVal : messages)
     {
         QJsonObject msgObj = msgVal.toObject();
-        QString timestamp = msgObj["timestamp"].toString();
-        QString from = msgObj["from"].toString();
-        QString message = msgObj["message"].toString();
+        QString timestamp = decryptString(msgObj["timestamp"].toString());
+        QString from = decryptString(msgObj["from"].toString());
+        QString message = decryptString(msgObj["message"].toString());
 
         Qt::Alignment align = (from == LoggedUser) ? Qt::AlignRight : Qt::AlignLeft;
         QString displayFrom = (from == LoggedUser) ? "Me" : from;

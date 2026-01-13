@@ -81,6 +81,11 @@ private:
 
     QMenu *emojiMenu;
 
+    //encrpyt chat history helper funcs
+    static QByteArray getKey();
+    static QString encryptString(const QString &plain);
+    static QString decryptString(const QString &encrypted);
+
     //file attachment states(before sending)
     QString pendingFilePath;
     bool hasattachedFile;
