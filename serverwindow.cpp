@@ -107,7 +107,7 @@ void ServerWindow::onClientDataReceived() //this routes the msg from one client 
         QString transferId = socketToTransferId[clientSocket];
         if (activeTransfers.contains(transferId)) {
             handleFileDataRelay(clientSocket, transferId);
-            return;  // IMPORTANT: do not parse as text
+            return; //do not parse as text
         }
     }
 
@@ -196,8 +196,8 @@ void ServerWindow::onClientDataReceived() //this routes the msg from one client 
                 info.bytesTransferred = 0;
                 info.expectedSize = fileSize;
                 info.transferId = transferId;
-
-                activeTransfers[transferId] = info;
+                //store in pending not started yet
+                pendingTransfers[transferId] = info;
 
                 // Mark busy BEFORE sending approval
                 busySenders.insert(sender);
@@ -209,7 +209,7 @@ void ServerWindow::onClientDataReceived() //this routes the msg from one client 
                     QTextEdit *view = clientTabs[sender];
                     if(view)
                     {
-                        QString displayMsg = QString("%1 (to %2): 📎 Sending file: %3 (%4 MB)")
+                        QString displayMsg = QString("%1 (to %2): 📎 Requesting to send: %3 (%4 MB)")
                                                  .arg(sender)
                                                  .arg(recipient)
                                                  .arg(fileName)
@@ -222,7 +222,7 @@ void ServerWindow::onClientDataReceived() //this routes the msg from one client 
                     }
                 }
 
-                // CRITICAL: Find recipient socket FIRST
+                //Find recipient socket first
                 QTcpSocket *recipientSocket = nullptr;
                 for(auto it = clientSockets.begin(); it != clientSockets.end(); ++it)
                 {
@@ -245,15 +245,15 @@ void ServerWindow::onClientDataReceived() //this routes the msg from one client 
                     continue;
                 }
 
-                // Send FILE_TRANSFER_START to recipient FIRST
-                QString fileHeader = QString("FILE_TRANSFER_START:%1:%2:%3:%4:%5\n")
+                // Send PENDING APPROVAL to recipient FIRST
+                QString pendingmsg = QString("FILE_TRANSFER_PENDING:%1:%2:%3:%4:%5\n")
                                          .arg(transferId)
                                          .arg(sender)
                                          .arg(fileName)
                                          .arg(fileSize)
                                          .arg(caption);
 
-                recipientSocket->write(fileHeader.toUtf8());
+                recipientSocket->write(pendingmsg.toUtf8());
                 recipientSocket->flush();
 
                 // Give recipient time to create file
@@ -262,14 +262,148 @@ void ServerWindow::onClientDataReceived() //this routes the msg from one client 
                 // NOW enable relay mode for sender (AFTER recipient is ready)
                 socketToTransferId[clientSocket] = transferId;
 
-                // Send approval to sender (this triggers file sending)
-                QString approval = QString("FILE_TRANSFER_APPROVED:%1\n").arg(transferId);
-                clientSocket->write(approval.toUtf8());
+                // Tell sender to wait
+                QString waitMsg = QString("FILE_TRANSFER_WAITING:%1\n").arg(transferId);
+                clientSocket->write(waitMsg.toUtf8());
                 clientSocket->flush();
             }
             continue;
         }
 
+        //if file transfer accepted by the reciever
+        if(message.startsWith("FILE_TRANSFER_ACCEPTED:"))
+        {
+            QString transferId = message.mid(23).trimmed();
+
+            if (!pendingTransfers.contains(transferId)) {
+                continue; // Already processed or expired
+            }
+
+            FileTransferInfo info = pendingTransfers[transferId];
+
+            // Move from pending to active
+            activeTransfers[transferId] = info;
+            pendingTransfers.remove(transferId);
+
+            // Mark busy
+            busySenders.insert(info.sender);
+            busyRecipients.insert(info.recipient);
+
+            // Find sender socket
+            QTcpSocket *senderSocket = nullptr;
+            for(auto it = clientSockets.begin(); it != clientSockets.end(); ++it)
+            {
+                if(it.value() == info.sender)
+                {
+                    senderSocket = it.key();
+                    break;
+                }
+            }
+
+            if (!senderSocket || senderSocket->state() != QAbstractSocket::ConnectedState)
+            {
+                // Sender disconnected - notify recipient
+                for(auto it = clientSockets.begin(); it != clientSockets.end(); ++it)
+                {
+                    if(it.value() == info.recipient)
+                    {
+                        QTcpSocket *recipientSocket = it.key();
+                        recipientSocket->write("FILE_TRANSFER_BLOCKED:Sender is no longer online.\n");
+                        recipientSocket->flush();
+                        break;
+                    }
+                }
+                activeTransfers.remove(transferId);
+                busySenders.remove(info.sender);
+                busyRecipients.remove(info.recipient);
+                continue;
+            }
+
+            // Find recipient socket
+            QTcpSocket *recipientSocket = nullptr;
+            for(auto it = clientSockets.begin(); it != clientSockets.end(); ++it)
+            {
+                if(it.value() == info.recipient)
+                {
+                    recipientSocket = it.key();
+                    break;
+                }
+            }
+
+            // Send FILE_TRANSFER_START to recipient
+            QString fileHeader = QString("FILE_TRANSFER_START:%1:%2:%3:%4:%5\n")
+                                     .arg(transferId)
+                                     .arg(info.sender)
+                                     .arg(info.fileName)
+                                     .arg(info.fileSize)
+                                     .arg(""); // Caption already shown in pending dialog
+
+            recipientSocket->write(fileHeader.toUtf8());
+            recipientSocket->flush();
+
+            // Give recipient time to create file
+            QThread::msleep(100);
+
+            // Enable relay mode for sender
+            socketToTransferId[senderSocket] = transferId;
+
+            // Send approval to sender to start sending
+            QString approval = QString("FILE_TRANSFER_APPROVED:%1\n").arg(transferId);
+            senderSocket->write(approval.toUtf8());
+            senderSocket->flush();
+
+            continue;
+        }
+
+        // Add NEW handler for rejection - REJECTED
+        if(message.startsWith("FILE_TRANSFER_REJECTED:"))
+        {
+            QString transferId = message.mid(23).trimmed();
+
+            if (!pendingTransfers.contains(transferId)) {
+                continue;
+            }
+
+            FileTransferInfo info = pendingTransfers[transferId];
+            pendingTransfers.remove(transferId);
+
+            busySenders.remove(info.sender);
+            busyRecipients.remove(info.recipient);
+            //clean up socket mapping
+            for (auto it = socketToTransferId.begin(); it != socketToTransferId.end(); )
+            {
+                if (it.value() == transferId)
+                    it = socketToTransferId.erase(it);
+                else
+                    ++it;
+            }
+
+            // Notify sender
+            for(auto it = clientSockets.begin(); it != clientSockets.end(); ++it)
+            {
+                if(it.value() == info.sender)
+                {
+                    QTcpSocket *senderSocket = it.key();
+                    QString rejection = QString("FILE_TRANSFER_BLOCKED:%1 declined to receive the file.\n")
+                                            .arg(info.recipient);
+                    senderSocket->write(rejection.toUtf8());
+                    senderSocket->flush();
+                    break;
+                }
+            }
+
+            // Update sender's tab
+            if(clientTabs.contains(info.sender))
+            {
+                clientTabs[info.sender]->append(
+                    QString("%1 declined file: %2")
+                        .arg(info.recipient)
+                        .arg(info.fileName)
+                    );
+            }
+
+            continue;
+        }
         //handle file transfer complete
         if(message.startsWith("FILE_TRANSFER_COMPLETE:"))
         {
@@ -599,7 +733,7 @@ void ServerWindow::on_logout_clicked()
     close();
 }
 
-//file transfer helper funcs
+/*--------file transfer helper funcs--------*/
 QString ServerWindow::generateTransferId(const QString &sender, const QString &recipient)
 {
     return sender + "_to_" + recipient + "_" +
@@ -630,7 +764,7 @@ void ServerWindow::handleFileDataRelay(QTcpSocket *senderSocket, const QString &
         return;
     }
 
-    FileTransferInfo &info = activeTransfers[transferId];
+    FileTransferInfo &info = activeTransfers[transferId]; //define structure and assign to incoming file
 
     // Read all available data from sender
     QByteArray chunk = senderSocket->readAll();
@@ -648,7 +782,7 @@ void ServerWindow::handleFileDataRelay(QTcpSocket *senderSocket, const QString &
     {
         if (it.value() == info.recipient)
         {
-            recipientSocket = it.key();
+            recipientSocket = it.key();  //find the recipients socket
             break;
         }
     }
@@ -677,7 +811,7 @@ void ServerWindow::handleFileDataRelay(QTcpSocket *senderSocket, const QString &
     }
     recipientSocket->flush();
 
-    // CRITICAL FIX: Track how much we've RECEIVED from sender, not sent to recipient
+    //Track how much we've RECEIVED from sender, not sent to recipient
     info.bytesTransferred += chunk.size();  // This tracks RECEIVED bytes
 
     qDebug() << "Progress:" << info.bytesTransferred << "/" << info.expectedSize;

@@ -54,7 +54,7 @@ MainWindow::MainWindow(QString username, QWidget *parent)
 
     // System tray icon (required for notifications)
     trayicon = new QSystemTrayIcon(this);
-    trayicon->setIcon(QIcon(":/images/novachat.png")); //TODO work in progress
+    trayicon->setIcon(QIcon(":/images/novachat.png"));
     trayicon->setToolTip("NovaChat");
     trayicon->show();
 
@@ -386,14 +386,14 @@ void MainWindow::receiveMessage()
                 //setup the download (creates file, adds to activeDownloads)
                 handleFileTransferStart(transferId, sender, fileName, fileSize, caption);
 
-                //CRITICAL: check if file data came right after the START message in same packet
+                //check if file data came right after the START message in same packet
                 int fileDataStart = endOfLine + 1;
                 if (fileDataStart < data.size() && !activeDownloads.isEmpty())
                 {
                     //extract the binary file data that arrived with the START message
                     QByteArray fileData = data.mid(fileDataStart);
 
-                    //write this first chunk immediately (don't lose it!)
+                    //write this first chunk immediatly
                     auto it = activeDownloads.begin();
                     IncomingFile &incoming = it.value();
                     if (incoming.file && !fileData.isEmpty())
@@ -435,19 +435,128 @@ void MainWindow::receiveMessage()
     {
         if(msg.isEmpty()) continue;
 
+
         //handle file transfer blocked
         if(msg.startsWith("FILE_TRANSFER_BLOCKED:"))
         {
             QString reason = msg.mid(22).trimmed();
             handleFileTransferBlocked(reason);
+            // Clean up attachment state
+            pendingFilePath.clear();
+            hasattachedFile = false;
+            isSendingFile = false;
+            currentTransferId.clear();
+
+            // Reset attach button
+            if (ui->attachFile) {
+                ui->attachFile->setText("📎");
+                ui->attachFile->setToolTip("Attach file");
+            }
+
+            // Reset message input
+            ui->messageEdit->setPlaceholderText("Type a message...");
+
+            // Hide progress UI
+            if (ui->fileProgressBar) ui->fileProgressBar->setVisible(false);
+            if (ui->fileStatusLabel) ui->fileStatusLabel->setVisible(false);
+            if (ui->cancelFileBtn) ui->cancelFileBtn->setVisible(false);
             continue;
         }
+
+        // Handle FILE_TRANSFER_WAITING (sender side - just show status)
+        if (msg.startsWith("FILE_TRANSFER_WAITING:"))
+        {
+            QString transferId = msg.mid(22).trimmed();
+            isSendingFile = false; //just waiting reset the flag here
+
+            if (ui->fileStatusLabel) {
+                ui->fileStatusLabel->setVisible(true);
+                ui->fileStatusLabel->setText("Waiting for recipient to accept...");
+            }
+
+            continue;
+        }
+
+        // Handle FILE_TRANSFER_PENDING (recipient side - show approval dialog)
+        if (msg.startsWith("FILE_TRANSFER_PENDING:"))
+        {
+            QStringList parts = msg.split(':');
+            if (parts.size() >= 5)
+            {
+                QString transferId = parts[1];
+                QString sender = parts[2];
+                QString fileName = parts[3];
+                qint64 fileSize = parts[4].toLongLong();
+                QString caption = parts.size() > 5 ? parts.mid(5).join(':') : "";
+
+                // Store transfer ID for response
+                pendingTransferId = transferId;
+
+                // Build approval message
+                QString approvalMsg = QString("%1 wants to send you:\n\n📎 %2 (%3 MB)")
+                                          .arg(sender)
+                                          .arg(fileName)
+                                          .arg(fileSize / 1024.0 / 1024.0, 0, 'f', 2);
+
+                if (!caption.isEmpty()) {
+                    approvalMsg += QString("\n\n💬 Caption: %1").arg(caption);
+                }
+
+                approvalMsg += "\n\nDo you want to accept this file?";
+
+                // Show NON-BLOCKING dialog with custom buttons
+                QMessageBox *msgBox = new QMessageBox(this);
+                msgBox->setWindowTitle("Incoming File Transfer");
+                msgBox->setText(approvalMsg);
+                msgBox->setIcon(QMessageBox::Question);
+
+                QPushButton *acceptBtn = msgBox->addButton("Accept", QMessageBox::AcceptRole);
+                QPushButton *rejectBtn = msgBox->addButton("Decline", QMessageBox::RejectRole);
+
+                msgBox->setDefaultButton(acceptBtn);
+
+                // Connect to slots for handling the response
+                connect(msgBox, &QMessageBox::finished, this, [this, msgBox, acceptBtn, transferId, sender]() {
+                    if (msgBox->clickedButton() == acceptBtn) {
+                        // User accepted
+                        QString response = QString("FILE_TRANSFER_ACCEPTED:%1\n").arg(transferId);
+                        tcpSocket->write(response.toUtf8());
+                        tcpSocket->flush();
+
+                        // Show preparing message
+                        if (ui->fileStatusLabel) {
+                            ui->fileStatusLabel->setVisible(true);
+                            ui->fileStatusLabel->setText("Preparing to receive file...");
+                        }
+                    } else {
+                        // User declined
+                        QString response = QString("FILE_TRANSFER_REJECTED:%1\n").arg(transferId);
+                        tcpSocket->write(response.toUtf8());
+                        tcpSocket->flush();
+
+                        // Show notification in chat
+                        if (chatTabs.contains(sender)) {
+                            chatTabs[sender]->append("--- You declined the file transfer ---");
+                        }
+                    }
+
+                    pendingTransferId.clear();
+                    msgBox->deleteLater();
+                });
+
+                // Show dialog (non-blocking!)
+                msgBox->show();
+            }
+            continue;
+        }
+
         //handle file transfer approved
         if (msg.startsWith("FILE_TRANSFER_APPROVED:"))
         {
             QString transferId = msg.mid(23).trimmed();
             currentTransferId = transferId;
 
+            isSendingFile = true;
             //send the file data
             QFile file(pendingFilePath);
             if(!file.open(QIODevice::ReadOnly))
@@ -486,7 +595,7 @@ void MainWindow::receiveMessage()
             }
 
             //send file data in chunks
-            const qint64 chunkSize = 64 * 1024;
+            const qint64 chunkSize = 64 * 1024; //64 kb
             qint64 bytesSent = 0;
 
             while(!file.atEnd())
@@ -1410,7 +1519,7 @@ void MainWindow::on_attachFile_clicked()
 
     //update ui to show attachment
     QString filename = fileinfo.fileName();
-    QString size = QString::number(filesize / 1024.0 /1024.0 ,'f' , 2) + " MB";
+    QString size = QString::number(filesize / 1024.0 /1024.0 ,'f' , 2) + " MB"; //convert to mb for displaying
 
     // Get icon based on file type
     QString icon = "📎";  // Default
@@ -1456,7 +1565,7 @@ void MainWindow::on_attachFile_clicked()
     }
 }
 
-void MainWindow::sendFile(const QString &recipient, const QString &caption)
+void MainWindow::sendFile(const QString &recipient, const QString &caption) //called in sendmsg func
 {
     // Check if already sending
     if (isSendingFile)
@@ -1491,7 +1600,7 @@ void MainWindow::sendFile(const QString &recipient, const QString &caption)
     tcpSocket->write(request.toUtf8());
     tcpSocket->flush();
 
-    isSendingFile = true; //prevent multiple sends
+    // isSendingFile = true; done only when user accepts
 
     // Show waiting UI
     if (ui->fileStatusLabel) {
@@ -1509,7 +1618,7 @@ void MainWindow::handleFileTransferBlocked(const QString &reason)
     if (ui->cancelFileBtn) ui->cancelFileBtn->setVisible(false);
 }
 
-void MainWindow::handleFileTransferStart(const QString &transferId, const QString &sender,
+void MainWindow::handleFileTransferStart(const QString &transferId, const QString &sender,  //receiving file
                                          const QString &fileName, qint64 fileSize,
                                          const QString &caption)
 {
@@ -1536,13 +1645,13 @@ void MainWindow::handleFileTransferStart(const QString &transferId, const QStrin
 
     qDebug() << "File opened successfully:" << savePath;
 
-    // Create incoming file structure
+    // Create incoming file structure (struct defined in mainwindow.h)
     IncomingFile incoming;
     incoming.file = file;
     incoming.fileName = fileName;
     incoming.sender = sender;
     incoming.totalSize = fileSize;
-    incoming.bytesReceived = 0;
+    incoming.bytesReceived = 0; //intital 0
     incoming.transferId = transferId;
 
     // Add to activeDownloads BEFORE receiving data
@@ -1586,7 +1695,7 @@ void MainWindow::handleFileComplete(const QString &transferId)
 {
     if (!activeDownloads.contains(transferId)) return;
 
-    IncomingFile &incoming = activeDownloads[transferId];
+    IncomingFile &incoming = activeDownloads[transferId]; //acces the file mapped by transferid
 
     if (incoming.file)
     {

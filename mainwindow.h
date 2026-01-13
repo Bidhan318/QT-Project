@@ -86,6 +86,7 @@ private:
     bool hasattachedFile;
     bool isSendingFile;
     QString currentTransferId;
+    QString pendingTransferId;
 
     struct IncomingFile{
         QFile *file;
@@ -96,7 +97,7 @@ private:
         QString transferId;
     };
 
-    QMap<QString, IncomingFile> activeDownloads;
+    QMap<QString, IncomingFile> activeDownloads; //qmap for transferid,file structure
 
     //hepler funcs- for file transfer
     void sendFile(const QString &recipient, const QString &caption);

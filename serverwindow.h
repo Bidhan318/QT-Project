@@ -67,6 +67,7 @@ private:
 
     };
     QMap<QString, FileTransferInfo> activeTransfers;  // transferId -> transfer info
+    QMap<QString, FileTransferInfo> pendingTransfers;  // so that the reciever can actually choose to download or not
     QMap<QTcpSocket*, QString> socketToTransferId;    // socket -> transferId
     QSet<QString> busyRecipients;                     // Users currently receiving files
     QSet<QString> busySenders;                        // Users currently sending files
