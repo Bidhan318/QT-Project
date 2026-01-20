@@ -88,6 +88,7 @@ private:
 
     //file attachment states(before sending)
     QString pendingFilePath;
+    QString currentFilerecipient;
     bool hasattachedFile;
     bool isSendingFile;
     QString currentTransferId;

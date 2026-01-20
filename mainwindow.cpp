@@ -237,6 +237,13 @@ void MainWindow::sendMessage()
         }
         return;
     }
+    // ONLY block if actively transferring (after approval)
+    if(isSendingFile)
+    {
+        QMessageBox::warning(this, "File Transfer",
+                             "File transfer in progress. Please wait.");
+        return;
+    }
 
     //  HANDLE FILE SENDING
     if(hasattachedFile && !pendingFilePath.isEmpty())
@@ -257,6 +264,7 @@ void MainWindow::sendMessage()
     }
 
     if (msg.isEmpty()) return;
+
 
     if(destination=="All")
     {
@@ -482,6 +490,7 @@ void MainWindow::receiveMessage()
         if (msg.startsWith("FILE_TRANSFER_PENDING:"))
         {
             QStringList parts = msg.split(':');
+            isSendingFile = false;
             if (parts.size() >= 5)
             {
                 QString transferId = parts[1];
@@ -655,7 +664,7 @@ void MainWindow::receiveMessage()
             tcpSocket->flush();
 
             //update ui
-            QString recipient = ui->activelist->currentText();
+            QString recipient =currentFilerecipient;
             if (chatTabs.contains(recipient))
             {
                 QString displayMsg = QString("[%1] Me: 📎 Sent file: %2 (%3 MB)")
@@ -1492,7 +1501,7 @@ void MainWindow::setemojiBtn()
 
 void MainWindow::on_attachFile_clicked()
 {
-    if(hasattachedFile) //check if file already attached
+    if(hasattachedFile || !pendingFilePath.isEmpty()) //check if file already attached
     {
         // Clear internal state
         pendingFilePath.clear();
@@ -1600,6 +1609,7 @@ void MainWindow::on_attachFile_clicked()
 
 void MainWindow::sendFile(const QString &recipient, const QString &caption) //called in sendmsg func
 {
+    currentFilerecipient = recipient;
     // Check if already sending
     if (isSendingFile)
     {
@@ -1633,8 +1643,7 @@ void MainWindow::sendFile(const QString &recipient, const QString &caption) //ca
     tcpSocket->write(request.toUtf8());
     tcpSocket->flush();
 
-    // isSendingFile = true; done only when user accepts
-
+    hasattachedFile = false;
     // Show waiting UI
     if (ui->fileStatusLabel) {
         ui->fileStatusLabel->setVisible(true);

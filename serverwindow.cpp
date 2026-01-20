@@ -789,7 +789,7 @@ void ServerWindow::handleFileDataRelay(QTcpSocket *senderSocket, const QString &
 
     if (!recipientSocket || recipientSocket->state() != QAbstractSocket::ConnectedState)
     {
-        qDebug() << "Recipient socket not available!";
+        qDebug() << "Recipient socket stnot available!";
 
         // Cancel transfer
         QString cancellation = QString("FILE_TRANSFER_CANCELLED:%1\n").arg(transferId);

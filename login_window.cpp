@@ -10,6 +10,8 @@
 #include <QMessageBox>
 #include <QCryptographicHash>
 #include <QDebug>
+#include <QTcpServer>
+#include "port.h"
 
 Login_Window::Login_Window(QWidget *parent)
     : QMainWindow(parent),
@@ -85,6 +87,14 @@ void Login_Window::on_Login_clicked()
         // Admin check - open ServerWindow for admin, MainWindow for others
         if (username.toLower() == "admin")
         {
+            if (isServerAlreadyRunning())
+            {
+                QMessageBox::warning(this, "Server Already Running",
+                                     "A server instance is already running on this network.\n"
+                                     "Only one admin can host the server at a time.");
+                return;  // Don't open ServerWindow
+            }
+
             // Open ServerWindow for admin
             serverwindow = new ServerWindow(username);
             serverwindow->setWindowTitle("NovaChat Server - " + username);
@@ -172,4 +182,23 @@ void Login_Window::on_Register_clicked()
 
     QMessageBox::information(this, "Success",
                              "User registered successfully");
+}
+
+bool Login_Window::isServerAlreadyRunning()
+{
+    // Try to bind to the TCP port temporarily
+    QTcpServer testServer;
+    bool canBind = testServer.listen(QHostAddress::Any, TCP_PORT); //tries to bind to the p[ort but only one program can bind at a time
+
+    if (canBind)
+    {
+        // Port is available - no server running
+        testServer.close();
+        return false;
+    }
+    else
+    {
+        // Port is already in use - server is running
+        return true;
+    }
 }

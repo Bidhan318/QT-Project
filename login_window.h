@@ -31,6 +31,7 @@ private:
 
     // Hashing function (SHA-256)
     QString hashPassword(const QString &password);
+    bool isServerAlreadyRunning(); //to prevent multiple admin login
 };
 
 #endif // LOGIN_WINDOW_H
