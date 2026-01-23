@@ -728,9 +728,25 @@ void ServerWindow::on_logout_clicked()
 {
     on_disconnect_btn_clicked(); //because in tcp if server closes msg passing is not gonna work anyway
 
+    if(discoveryTimer)
+    {
+        disconnect(discoveryTimer, nullptr, nullptr, nullptr); // Disconnect signals
+    }
+
+    if(udpSocket)
+    {
+        udpSocket->close(); // Close UDP socket permanently
+    }
+
+    if(tcpServer)
+    {
+        tcpServer->close(); // Close TCP server permanently
+    }
+
     loginwindow = new Login_Window();
     loginwindow->show();
     close();
+    deleteLater();
 }
 
 /*--------file transfer helper funcs--------*/

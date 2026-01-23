@@ -10,12 +10,18 @@
 #include <QMessageBox>
 #include <QCryptographicHash>
 #include <QDebug>
-#include <QTcpServer>
+#include <QUdpSocket>
+#include <QEventLoop>
+#include <QTimer>
+#include <QProgressDialog>
 #include "port.h"
 
 Login_Window::Login_Window(QWidget *parent)
     : QMainWindow(parent),
-    ui(new Ui::Login_Window)
+    ui(new Ui::Login_Window),
+    discoverySocket(nullptr),
+    serverFound(false),
+    userCancelled(false)
 {
     ui->setupUi(this);
 
@@ -28,6 +34,10 @@ Login_Window::Login_Window(QWidget *parent)
 
 Login_Window::~Login_Window()
 {
+    if (discoverySocket) {
+        discoverySocket->close();
+        delete discoverySocket;
+    }
     delete ui;
 }
 
@@ -89,11 +99,17 @@ void Login_Window::on_Login_clicked()
         {
             if (isServerAlreadyRunning())
             {
-                QMessageBox::warning(this, "Server Already Running",
-                                     "A server instance is already running on this network.\n"
-                                     "Only one admin can host the server at a time.");
-                return;  // Don't open ServerWindow
+                // Only show "server running" message if server was actually found
+                if (serverFound && !userCancelled)
+                {
+                    QMessageBox::warning(this, "Server Already Running",
+                                         "A server instance is already running on this network.\n"
+                                         "Only one admin can host the server at a time.");
+                }
+                // If userCancelled is true, message was already shown
+                return;
             }
+
 
             // Open ServerWindow for admin
             serverwindow = new ServerWindow(username);
@@ -184,21 +200,81 @@ void Login_Window::on_Register_clicked()
                              "User registered successfully");
 }
 
+void Login_Window::checkForExistingServer()
+{
+    while (discoverySocket->hasPendingDatagrams())
+    {
+        QByteArray datagram;
+        datagram.resize(discoverySocket->pendingDatagramSize());
+        discoverySocket->readDatagram(datagram.data(), datagram.size());
+
+        QString message = QString::fromUtf8(datagram);
+
+        if (message.startsWith("SERVER_DISCOVERY:"))
+        {
+            serverFound = true;
+        }
+    }
+}
+
 bool Login_Window::isServerAlreadyRunning()
 {
-    // Try to bind to the TCP port temporarily
-    QTcpServer testServer;
-    bool canBind = testServer.listen(QHostAddress::Any, TCP_PORT); //tries to bind to the p[ort but only one program can bind at a time
+    if (!discoverySocket) {
+        discoverySocket = new QUdpSocket(this);
+        discoverySocket->bind(QHostAddress::AnyIPv4, PORT,
+                              QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
+        connect(discoverySocket, &QUdpSocket::readyRead,
+                this, &Login_Window::checkForExistingServer);
+    }
 
-    if (canBind)
-    {
-        // Port is available - no server running
-        testServer.close();
-        return false;
+    serverFound = false;
+    userCancelled = false;
+    bool checkcomplete = false;
+
+    // Create progress dialog
+    QProgressDialog progress("Checking for existing server on network...",
+                             "Cancel", 0, 25, this);
+    progress.setWindowTitle("Novachat-Server Discovery");
+    progress.setWindowModality(Qt::WindowModal);
+    progress.setMinimumDuration(0);  // Show immediately
+    progress.setAutoClose(true);
+    progress.setAutoReset(false);
+
+    // Update progress bar while waiting
+    QEventLoop loop;
+    QTimer progressTimer;
+    int progressValue = 0;
+
+    connect(&progressTimer, &QTimer::timeout, [&]() {
+        progressValue++;
+        progress.setValue(progressValue);
+
+        if (progressValue >= 25 || serverFound) {
+            checkcomplete = true;
+            loop.quit(); //exit the waiting loop
+        }
+    });
+
+    connect(&progress, &QProgressDialog::canceled, [&]() {
+        if(!checkcomplete)
+        {
+            userCancelled = true;
+        }
+        loop.quit();
+    });
+
+    progressTimer.start(100);  // Update every 100ms (25 * 100ms = 2.5 seconds)
+    loop.exec();
+
+    progressTimer.stop();
+    progress.close();
+    if (userCancelled) {
+        QMessageBox::information(this, "Check Cancelled",
+                                 "Server check was cancelled.\n"
+                                 "For safety, admin login is blocked.\n"
+                                 "Please try again and wait for the check to complete.");
+        return true;  // Block login to be safe
     }
-    else
-    {
-        // Port is already in use - server is running
-        return true;
-    }
+
+    return serverFound;
 }

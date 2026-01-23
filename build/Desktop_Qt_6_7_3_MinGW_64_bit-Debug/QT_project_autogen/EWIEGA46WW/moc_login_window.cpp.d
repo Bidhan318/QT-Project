@@ -44,6 +44,7 @@ E:/QT\ projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_
   D:/Qt/6.7.3/mingw_64/include/QtCore/qglobalstatic.h \
   D:/Qt/6.7.3/mingw_64/include/QtCore/qhash.h \
   D:/Qt/6.7.3/mingw_64/include/QtCore/qhashfunctions.h \
+  D:/Qt/6.7.3/mingw_64/include/QtCore/qiodevice.h \
   D:/Qt/6.7.3/mingw_64/include/QtCore/qiodevicebase.h \
   D:/Qt/6.7.3/mingw_64/include/QtCore/qiterable.h \
   D:/Qt/6.7.3/mingw_64/include/QtCore/qiterator.h \
@@ -142,6 +143,13 @@ E:/QT\ projects/QT_project/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/QT_project_
   D:/Qt/6.7.3/mingw_64/include/QtGui/qtransform.h \
   D:/Qt/6.7.3/mingw_64/include/QtGui/qwindowdefs.h \
   D:/Qt/6.7.3/mingw_64/include/QtGui/qwindowdefs_win.h \
+  D:/Qt/6.7.3/mingw_64/include/QtNetwork/QUdpSocket \
+  D:/Qt/6.7.3/mingw_64/include/QtNetwork/qabstractsocket.h \
+  D:/Qt/6.7.3/mingw_64/include/QtNetwork/qhostaddress.h \
+  D:/Qt/6.7.3/mingw_64/include/QtNetwork/qtnetwork-config.h \
+  D:/Qt/6.7.3/mingw_64/include/QtNetwork/qtnetworkexports.h \
+  D:/Qt/6.7.3/mingw_64/include/QtNetwork/qtnetworkglobal.h \
+  D:/Qt/6.7.3/mingw_64/include/QtNetwork/qudpsocket.h \
   D:/Qt/6.7.3/mingw_64/include/QtWidgets/QMainWindow \
   D:/Qt/6.7.3/mingw_64/include/QtWidgets/qmainwindow.h \
   D:/Qt/6.7.3/mingw_64/include/QtWidgets/qsizepolicy.h \

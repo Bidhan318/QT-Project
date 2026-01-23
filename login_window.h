@@ -2,6 +2,7 @@
 #define LOGIN_WINDOW_H
 
 #include <QMainWindow>
+#include <QUdpSocket>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -31,6 +32,10 @@ private:
 
     // Hashing function (SHA-256)
     QString hashPassword(const QString &password);
+    QUdpSocket *discoverySocket;
+    bool serverFound;
+    bool userCancelled;
+    void checkForExistingServer();
     bool isServerAlreadyRunning(); //to prevent multiple admin login
 };
 
