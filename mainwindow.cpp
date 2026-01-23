@@ -712,6 +712,16 @@ void MainWindow::receiveMessage()
         //handle server shutdown msg
         if (msg == "SERVER_SHUTDOWN")
         {
+            // STOP UDP announcements immediately
+            if(announcementTimer)
+            {
+                announcementTimer->stop();
+            }
+            // Close UDP socket to stop receiving discovery messages
+            if(udpSocket)
+            {
+                udpSocket->close();
+            }
             for (QTextEdit *view : chatTabs.values()) {
                 if (view) {
                     view->append("--- Server has disconnected ---");
@@ -779,6 +789,34 @@ void MainWindow::receiveMessage()
 
         //parse msg format TYPE:sender:msg or Type:recipient:sender:msg
         QStringList parts = msg.split(':'); //just keeps the part of msg seperate from each of :
+
+        // Handle SERVER messages first (they only have 2 parts)
+        if(parts.size() >= 2 && parts[0] == "SERVER")
+        {
+            QString message = parts.mid(1).join(':');
+
+            if(chatTabs.contains("All"))
+            {
+                appendAlignedMessage(
+                    chatTabs["All"],
+                    "[" + timestamp + "] Server: " + message,
+                    Qt::AlignLeft
+                    );
+
+                saveChatHistory();
+            }
+            if (windowState() & Qt::WindowMinimized || !isActiveWindow())
+            {
+                trayicon->showMessage(
+                    "Server message — NovaChat",
+                    "Server: " + message,
+                    QSystemTrayIcon::Information,
+                    3000
+                    );
+            }
+            continue;
+        }
+
         if(parts.size() < 3) continue; //has to be >=3 due to our format
 
         QString msgtype = parts[0]; //extract the "TYPE" part from the entire recieved msg
@@ -847,31 +885,6 @@ void MainWindow::receiveMessage()
                 trayicon->showMessage(
                     "New private message — NovaChat",
                     sender + ": " + message,
-                    QSystemTrayIcon::Information,
-                    3000
-                    );
-            }
-        }
-
-        else if (msgtype == "SERVER")
-        {
-            QString message = parts.mid(1).join(':');
-
-            if(chatTabs.contains("All"))
-            {
-                appendAlignedMessage(
-                    chatTabs["All"],
-                    "[" + timestamp + "] Server: " + message,
-                    Qt::AlignLeft
-                    );
-
-                saveChatHistory();
-            }
-            if (windowState() & Qt::WindowMinimized || !isActiveWindow())
-            {
-                trayicon->showMessage(
-                    "Server message — NovaChat",
-                    "Server: " + message,
                     QSystemTrayIcon::Information,
                     3000
                     );
