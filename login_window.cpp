@@ -14,6 +14,8 @@
 #include <QEventLoop>
 #include <QTimer>
 #include <QProgressDialog>
+#include <QStandardPaths>
+#include <QDir>
 #include "port.h"
 
 Login_Window::Login_Window(QWidget *parent)
@@ -29,6 +31,28 @@ Login_Window::Login_Window(QWidget *parent)
             this, &Login_Window::on_Login_clicked);
     connect(ui->Username, &QLineEdit::returnPressed,
             ui->Password, QOverload<>::of(&QWidget::setFocus));
+
+    // Initialize users.json if it doesn't exist
+    QString usersPath = getUsersJsonPath();
+    if (!QFile::exists(usersPath))
+    {
+        QFile file(usersPath);
+        if (file.open(QIODevice::WriteOnly))
+        {
+            QJsonObject root;
+            QJsonArray users;
+
+            // Default admin (username: admin, password: admin1)
+            QJsonObject admin;
+            admin["username"] = "admin";
+            admin["password"] = hashPassword("admin1");
+            users.append(admin);
+
+            root["users"] = users;
+            file.write(QJsonDocument(root).toJson());
+            file.close();
+        }
+    }
 
 }
 
@@ -59,7 +83,7 @@ void Login_Window::on_Login_clicked()
     // Hash entered password before comparing
     QString hashedPassword = hashPassword(password);
 
-    QFile file("users.json");
+    QFile file(getUsersJsonPath());
     if (!file.open(QIODevice::ReadOnly))
     {
         QMessageBox::critical(this, "Error", "Could not open users.json");
@@ -146,7 +170,7 @@ void Login_Window::on_Register_clicked()
         return;
     }
 
-    QFile file("users.json");
+   QFile file(getUsersJsonPath());
     if (!file.open(QIODevice::ReadOnly))
     {
         QMessageBox::critical(this, "Error", "Could not open users.json");
@@ -277,4 +301,11 @@ bool Login_Window::isServerAlreadyRunning()
     }
 
     return serverFound;
+}
+
+QString Login_Window::getUsersJsonPath()
+{
+    QString appDataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir().mkpath(appDataPath);
+    return appDataPath + "/users.json";
 }

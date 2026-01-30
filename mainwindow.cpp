@@ -22,6 +22,7 @@
 #include <QTextBlockFormat>
 #include <QDateTime>
 #include <QCryptographicHash>
+#include <QStandardPaths>
 
 MainWindow::MainWindow(QString username, QWidget *parent)
     : QMainWindow(parent)
@@ -1138,7 +1139,11 @@ QString MainWindow::decryptString(const QString &encrypted)
 
 void MainWindow::loadChatHistory()  //load for all tab
 {
-    QString historyFile = QCoreApplication::applicationDirPath() + "/chat_history.json";
+    //Use AppData/Roaming for user data (writable location)
+    QString appDataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir().mkpath(appDataPath);  // Create directory if it doesn't exist
+
+    QString historyFile = appDataPath + "/chat_history.json";
     QFile file(historyFile);
     if (!file.exists()) return;  // No history yet
 
@@ -1193,7 +1198,11 @@ void MainWindow::loadChatHistory()  //load for all tab
 
 void MainWindow::saveChatHistory()
 {
-    QString historyFile = QCoreApplication::applicationDirPath() + "/chat_history.json";
+    // Use AppData/Roaming for user data
+    QString appDataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir().mkpath(appDataPath);  // Ensure directory exists
+
+    QString historyFile = appDataPath + "/chat_history.json";
     QFile file(historyFile);
 
     // Load existing data first
@@ -1277,7 +1286,9 @@ void MainWindow::saveChatHistory()
 
 void MainWindow::loadChatHistoryForTab(const QString &tabName) //load for pvt msgs
 {
-    QString historyFile = QCoreApplication::applicationDirPath() + "/chat_history.json";
+    // Use AppData/Roaming for user data
+    QString appDataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QString historyFile = appDataPath + "/chat_history.json";
     QFile file(historyFile);
     if (!file.exists()) return;
 

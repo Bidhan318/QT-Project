@@ -32,6 +32,7 @@ private:
 
     // Hashing function (SHA-256)
     QString hashPassword(const QString &password);
+    QString getUsersJsonPath();
     QUdpSocket *discoverySocket;
     bool serverFound;
     bool userCancelled;
